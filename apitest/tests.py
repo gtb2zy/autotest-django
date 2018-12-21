@@ -5,7 +5,7 @@ import json
 import hashlib
 import pymysql
 
-
+# test
 # Create your tests here.
 # 连接MYSQL数据库 database 数据库名称
 def connect_database(database='autotest'):
