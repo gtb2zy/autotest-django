@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自动化测试平台</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    {% load bootstrap4 %} 
+    {% bootstrap_css %} 
+    {% bootstrap_javascript %}
+    <script type="text/javascript" src="/admin/jsi18n/"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+    <script type="text/javascript" src="/static/admin/js/core.js"></script>
+    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+    <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+    <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+</head>
+
+<body role="document">
+    <!-- 导航栏-->
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top" style="border-radius: 0">
+        <div class="container justify-content-end"> 
+            <ul class="navbar-nav">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <li class="active" id="apis"><a style="color: white;font-size: 18px" href="/apitest/apis_manage/" target="mainFrame">api用例</a></li>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <li class="active" id="apitest"><a style="color: gray;font-size: 18px" href="/apitest/apitest_manage/" target="mainFrame">流程接口</a></li>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <li class="active" id="appcase"><a style="color: gray;font-size: 18px" href="/apptest/appcase_manage/" target="mainFrame">app用例</a></li>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <li class="active" id="webcase"><a style="color: gray;font-size: 18px" href="/webtest/webcase_manage/" target="mainFrame">web用例</a></li>
+            </ul>
+        </div>
+        <div class="container justify-content-end">
+            <ul class="navbar-nav" style="font-size:18px;">
+                <li class="nav-item"><a class="nav-link active" href="#">
+                    <i class="glyphicon glyphicon-user"></i>&nbsp;{{user}}</a></li>
+                <li class="nav-item"><a class="nav-link" href="/user/logout/" target="_parent">退出</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <!--搜索-->
+    <div class="page-header" style="padding: 40px 20px 0">
+        <form action="/apitest/apiinfossearch/?apis.id={{ apis.id }}" method="GET" "navbar-form">
+            <a href="/apitest/apiinfos_manage/?apis.id={{ apis.id }}">显示所有(刷新)</a>
+        </form>
+    </div>
+    <!--流程接口步骤-->
+    <div class="row" style="font-size: 14px">
+        <div class="col-md-12">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>模块：{{ apis.apiname }}</th>
+                    </tr>
+                    <tr>
+                        <th>负责人：{{ apis.apitester }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for apisinfo in apiinfos %}
+                    <tr>
+                        {% if apisinfo.api.id == apis.id  %}
+                        <td>
+                            <a href="#{{ apisinfo.id }}" data-toggle="collapse">{{ apisinfo.apiname }}</a>
+                            <div id="{{ apisinfo.id }}" class="nav nav-list collapse">
+                                <ul class="navbar-nav">
+                                    <li class="nav-item">URL地址：{{ apisinfo.apiurl }}</li>
+                                    <li class="nav-item">请求参数PARAM：{{ apisinfo.apiparamvalue }}</li>
+                                    <li class="nav-item">请求数据JSON：{{ apisinfo.apijson }}</li>
+                                    <li class="nav-item">请求方法：{{ apisinfo.apimethod }}</li>
+                                    <li class="nav-item">响应数据JSON：{{ apisinfo.apiresponse }}</li>
+                                    <li class="nav-item">测试结果：
+                                        {% if apisinfo.apistatus == 1 %}
+                                        <a style='color:green'>{{ apisinfo.apistatus }}</a>
+                                        {% else %}
+                                        <a style='color:red'>{{ apisinfo.apistatus }}</a>
+                                        {% endif %}
+                                    </li>
+                                    <li class="nav-item">执行时间：{{ apisinfo.create_time }}</li>
+                                </ul>
+                            </div>
+                        </td>
+                        {% else %}
+                        {% endif %}
+                        <tr /> 
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div style="width: 100px;margin: 0 auto;">
+        <td>
+            <a style='color:light blue'  href="/apitest/apis_manage/" >
+                <img src="/static/admin/img/icon-yes.svg" alt="返回"/>返回
+            </a>
+            </td>        
+            <td>
+            <a style='color:light blue' 
+                class="related-widget-wrapper-link add-related" 
+                id="add_id_Apitest" 
+                href="/admin/apitest/apis/{{ apis.id  }}/change/?_to_field=id&amp;_popup=1">
+                <img src="/static/admin/img/icon-changelink.svg"/>编辑
+            </a>
+        </td>
+    </div>
+    </div>
+</body>
+</html>
