@@ -2,10 +2,10 @@
 import requests
 import time
 import json
-import hashlib
+# import hashlib
 import pymysql
 
-# test
+
 # Create your tests here.
 # 连接MYSQL数据库 database 数据库名称
 def connect_database(database='autotest'):
@@ -144,14 +144,15 @@ def test_apis():
                         api['param'][i] = int(time.time())
             if api['json']:
                 api['json'] = json.loads(api['json'])
-                api['json']['pswmd5'] = hashlib.md5(
-                    api['json']['pswmd5'].encode('utf-8')).hexdigest()
+                # md5转换
+                # api['json']['pswmd5'] = hashlib.md5(
+                #     api['json']['pswmd5'].encode('utf-8')).hexdigest()
                 for i in api['json']:
                     if api['json'][i] == 'NOW':
                         api['json'][i] = int(time.time())
             if api['response']:
                 api['response'] = json.loads(api['response'])
-            # print(api)
+            print(api)
             resu = api_request(api)
             update_data(
                 table='apitest_apiinfo',
