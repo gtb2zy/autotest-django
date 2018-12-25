@@ -4,6 +4,15 @@ import time
 import json
 # import hashlib
 import pymysql
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG, format='%(asctime)s-%(levelname)s-%(message)s')
+if 1:
+    logging.disable(logging.DEBUG)
+
+# 保存实时token数值
+TOKEN = ""
 
 
 # Create your tests here.
@@ -76,6 +85,7 @@ def get_apiInfo():
             table='apitest_apiinfo', filterKey='api_id', filterValue=api_id)
         for apiinfo in apiinfos:
             api = {}
+            api['module'] = result[0]
             api['id'] = apiinfo[0]
             api['url'] = result[2] + apiinfo[9]
             api['name'] = apiinfo[1]
@@ -91,7 +101,7 @@ def get_apiInfo():
 def api_request(api):
     start = time.time()
     r = requests.Response()
-    error = 'pass'
+    error = 'PASS'
     try:
         r = requests.request(
             method=api['method'],
@@ -112,21 +122,25 @@ def api_request(api):
         error = "InvalidURL"
 
     finally:
-        if error != 'pass':
-            print(error)
+        if error != 'PASS':
+            # print(error)
             return False
     # 计算测试时间，精确到小数点后两位
     timeval = time.time() - start
     timeval = str(round(timeval, 2))
-    print(r.text)
+    logging.debug('RESPONSE：' + r.text)
     rev = json.loads(r.text)
+    if 'data' in rev:
+        if 'token' in rev['data']:
+            global TOKEN
+            TOKEN = rev['data']['token']
     if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
             'response']['errmsg']:
-        print(api['name'] + ' 测试：' + error + ' ' + timeval)
+        logging.info(error + '-' + api['name'] + '-测试时间：' + timeval)
         return True
     else:
-        error = 'response不一致'
-        print(api['name'] + ' 测试：' + error + ' ' + str(timeval))
+        error = 'FAIL-RESPONSE 不一致'
+        logging.info(error + '-' + api['name'] + '-测试时间：' + timeval)
         return False
 
 
@@ -134,14 +148,24 @@ def api_request(api):
 def test_apis():
     apiInfos = get_apiInfo()
     for apiInfo in apiInfos:
+        start = time.time()
+        logging.info(apiInfo + '模块测试开始')
+        moduleResu = True
+        moduleID = ''
         apis = apiInfos[apiInfo]
         for api in apis:
+            moduleID = api['module']
             if api['param']:
                 api['param'] = json.loads(api['param'])
                 for i in api['param']:
-                    if api['param'][i] == 'NOW':
-                        print(int(time.time()))
-                        api['param'][i] = int(time.time())
+                    if i == 'token':
+                        api['param'][i] = TOKEN
+                update_data(
+                    table='apitest_apiinfo',
+                    setKey='apiparamvalue',
+                    setValue='\'' + json.dumps(api['param']) + '\'',
+                    filterKey='id',
+                    filterValue=api['id'])
             if api['json']:
                 api['json'] = json.loads(api['json'])
                 # md5转换
@@ -152,14 +176,28 @@ def test_apis():
                         api['json'][i] = int(time.time())
             if api['response']:
                 api['response'] = json.loads(api['response'])
-            print(api)
+            logging.debug('API：' + json.dumps(api))
             resu = api_request(api)
+            if resu is False:
+                moduleResu = False
             update_data(
                 table='apitest_apiinfo',
                 setKey='apistatus',
                 setValue=resu,
                 filterKey='id',
                 filterValue=api['id'])
+        update_data(
+            table='apitest_apis',
+            setKey='apistatus',
+            setValue=moduleResu,
+            filterKey='id',
+            filterValue=moduleID)
+        timeval = time.time() - start
+        timeval = str(round(timeval, 2))
+        if moduleResu:
+            logging.info('PASS-' + apiInfo + '模块测试结束-测试时间：' + timeval + '\n')
+        else:
+            logging.info('FAIL-' + apiInfo + '模块测试结束-测试时间：' + timeval + '\n')
 
 
 if __name__ == '__main__':

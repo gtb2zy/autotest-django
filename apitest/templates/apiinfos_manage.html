@@ -51,20 +51,22 @@
                     }
                     if ($(this).attr("class")=="nav-item json"){
                         json=$(this).children().text()
-                        json=JSON.parse(json)
-                        $.each(json,function(key, val){
-                            if (val=="NOW"){
-                                json[key]=Date.parse(new Date())/1000
-                            }
-                        })
-                        json=JSON.stringify(json)
+                        if (json!="None"){
+                            json=JSON.parse(json)
+                            $.each(json,function(key, val){
+                                if (val=="NOW"){
+                                    json[key]=Date.parse(new Date())/1000
+                                }
+                            })
+                            json=JSON.stringify(json)
+                        }
                     }
                     if ($(this).attr("class")=="nav-item param"){
                         param=$(this).children().text()
-                        if (param){
+                        if (param!="None"){
                             param=parseParams(JSON.parse(param))
+                            param="?"+param
                         }
-                        param="?"+param
                     }
                     if ($(this).attr("class")=="nav-item except"){
                         except=$(this).children().text()
@@ -79,7 +81,7 @@
                         response=$(this).children()
                     }
                 })
-                if (param){
+                if (param!="None"){
                     url=url+param
                 }
                 $.ajax({
@@ -156,7 +158,7 @@
                         {% if apisinfo.api.id == apis.id  %}
                         <td>
                             <a href="#{{ apisinfo.id }}" data-toggle="collapse">{{ apisinfo.apiname }}</a>
-                            <div id="{{ apisinfo.id }}" class="nav nav-list collapsed">
+                            <div id="{{ apisinfo.id }}" class="nav nav-list collapse">
                                 <ul class="navbar-nav">
                                     <li class="nav-item url">URL地址：<span>{{ apisinfo.apiurl }}</span></li>
                                     <li class="nav-item param">请求参数PARAM：<span>{{ apisinfo.apiparamvalue }}</span></li>

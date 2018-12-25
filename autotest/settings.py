@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'sets',
     'apptest',
     'webtest',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,10 @@ HERE = os.path.join(HERE, '../')
 STATICFILES_DIRS = (
     os.path.join(HERE, 'static/'),
 )
+
+
+# 定时任务最简单配置
+CRONJOBS = [
+    # 表示每天2：01执行
+    ('0 15 * * *', 'apitest.test.test_apis')
+]
