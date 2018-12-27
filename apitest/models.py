@@ -53,7 +53,9 @@ class Apis(models.Model):
     apiurl = models.CharField('url地址', max_length=200)  # 地址
     apitester = models.CharField('测试负责人', max_length=16, null=True)  # 执行人
     apistatus = models.BooleanField('是否通过')  # 测试结果
-    create_time = models.DateTimeField('创建时间', auto_now=True)  # 创建时间-自动获取当前时间
+    create_time = models.DateTimeField(
+        '创建时间', auto_now_add=True)  # 创建时间-自动获取当前时间
+    update_time = models.DateTimeField('修改时间', auto_now=True)  # 创建时间-自动获取当前时间
 
     class Meta:
         verbose_name = 'API测试用例'
@@ -64,7 +66,11 @@ class Apis(models.Model):
 
 
 class Apiinfo(models.Model):
-    api = models.ForeignKey('Apis', on_delete=models.CASCADE, null=True,)
+    api = models.ForeignKey(
+        'Apis',
+        on_delete=models.CASCADE,
+        null=True,
+    )
     # 接口标题
     apiname = models.CharField('接口名称', max_length=100, null=True)
     # 请求方法
@@ -79,11 +85,17 @@ class Apiinfo(models.Model):
     # 地址
     apiurl = models.CharField('url地址', max_length=200, null=True)
     # 请求参数和值param
-    apiparamvalue = models.CharField('请求参数param', max_length=800, null=True, blank=True)
+    apiparamvalue = models.CharField(
+        '请求参数param', max_length=800, null=True, blank=True)
     # 请求数据JSON
-    apijson = models.CharField('请求数据json', max_length=800, null=True, blank=True)
+    apijson = models.CharField(
+        '请求数据json', max_length=800, null=True, blank=True)
     # 响应数据
-    apiresponse = models.CharField('响应数据json', max_length=5000, null=True,)
+    apiresponse = models.CharField(
+        '响应数据json',
+        max_length=5000,
+        null=True,
+    )
     # 测试结果
     apistatus = models.BooleanField('是否通过', null=True)
     # 创建时间-自动获取当前时间

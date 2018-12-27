@@ -26,6 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
         'productname',
         'productdesc',
         'producter',
+        'creater',
         'create_time',
         'id',
     ]

@@ -23,7 +23,8 @@
     <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
     <script src="/static/js/jquery-3.3.1.min.js"></script>
     <script>
-        // json转url,data为json对象
+        // json对象转url格式，如{'xxx':'xxx','xxx':'xxx'}转为xxx=xxx&xxx=xxx   
+        // data为json对象
         function parseParams(data) {
             try {
                 var tempArr = [];
@@ -38,7 +39,10 @@
                 return '';
             }
         }
+        //HTML加载完运行的函数
         $(function(){
+            // 格式化API参数，并显示
+            // 收到测试API
             $("button").click(function(){
                 var method,url,json,result,response
                 alert("开始")
@@ -102,7 +106,7 @@
                             result.css({"color":"green"})
                         }
                         result.text(status)
-                        response.text(JSON.stringify(data))
+                        response.text(JSON.stringify(data,null,4))
                     }
                 })
             })
@@ -174,8 +178,8 @@
                                     </li>
                                     <li class="nav-item">执行时间：{{ apisinfo.create_time }}</li>
                                     <li class="nav-item"><button>测试</button></li>
-                                    <li class="nav-item result">测试结果：<span>......</span></li>
-                                    <li class="nav-item response">实际返回数据：<span>......</span></li>
+                                    <li class="nav-item result">测试结果：<pre>unkonwn</pre></li>
+                                    <li class="nav-item response">实际返回数据：<pre>unkonwn</pre></li>
                                 </ul>
                             </div>
                         </td>

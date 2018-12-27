@@ -78,8 +78,8 @@
                         <th>后端模块</th>
                         <th>URL地址</th>
                         <th>测试结果</th>
-                        <th>时间</th>
-                        <th>查看</th>
+                        <th>创建时间</th>
+                        <th>修改时间</th>
                         <th>编辑</th>
                         <th>删除</th>
                     </tr>
@@ -88,7 +88,10 @@
                     {% for apis in apiss %}
                     <tr>
                         <td>{{ apis.Product.productname }}</td>
-                        <td>{{ apis.apiname }}</td>
+                        <td><a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
+                            {{ apis.apiname }}
+                            </a>
+                        </td>
                         <td>{{ apis.apiurl }}</td>
                         <td>{% if apis.apistatus == 1 %}
                                 <a style='color:green'>{{ apis.apistatus }}</a> 
@@ -97,9 +100,10 @@
                                 {% endif %}
                         </td>
                         <td>{{ apis.create_time }}</td>
-                        <td><a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
+                        <td>{{ apis.update_time }}</td>
+                        <!-- <td><a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
                             <img src="/static/admin/img/icon-yes.svg"/>
-                        </a></td>
+                        </a></td> -->
                         <td><a style='color:light blue' 
                                 class="related-widget-wrapper-link add-related" 
                                 id="add_id_Apis" 

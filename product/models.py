@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -6,6 +7,8 @@ class Product(models.Model):
     productname = models.CharField('产品名称', max_length=64)  # 产品名称
     productdesc = models.CharField('产品描述', max_length=200)  # 产品描述
     producter = models.CharField('产品负责人', max_length=200, null=True)  # 产品负责人
+    creater = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name='创建人')
     create_time = models.DateTimeField('创建时间', auto_now=True)  # 创建时间-自动获取当前时间
 
     class Meta:
