@@ -1,4 +1,4 @@
-﻿{% extends 'base_list.html' %}
+{% extends 'base_list.html' %}
 
 {# 导航栏 #}
 {% block navbar %}
@@ -24,13 +24,6 @@
 {% block pager %}
 {% endblock %} 
 
+{# 额外内容 #}
 {% block else %}
-    <div class="row" style="padding-top: 100px">
-        <div class="container" style="text-align: center">
-            <font size='8'>
-                <h1>欢迎您，来到 autotestplat V1.0</h1>
-            </font>
-            <a href="{% url 'product_manage' %}">单击进入测试用例</a>
-        </div>
-    </div>
 {% endblock %}

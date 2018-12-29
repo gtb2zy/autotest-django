@@ -8,8 +8,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 @login_required
 def product_manage(request):
     username = request.session.get('user', '')
-    product_list = Product.objects.all()
-    product_count = product_list.count()
+    product_list = Product.objects.get_queryset().order_by('id')
     paginator = Paginator(product_list, 8)  # 生成paginator对象,设置每页显示5条记录
     page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
     currentPage = int(page)  # 把获取的当前页码数转换成整数类型
@@ -25,7 +24,6 @@ def product_manage(request):
             "user": username,
             "products": product_list,
             "currentPage": currentPage,
-            "productcounts": product_count
         })
 
 

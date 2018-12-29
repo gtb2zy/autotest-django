@@ -21,7 +21,7 @@ from user.userviews import login
 
 urlpatterns = [
     path('', login),
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls,),
     path('user/', include('user.urls')),
     path('apitest/', include('apitest.urls')),
     path('apptest/', include('apptest.urls')),

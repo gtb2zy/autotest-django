@@ -53,9 +53,8 @@ def apistep_manage(request):
 # API测试用例
 @login_required
 def apis_manage(request):
-    apis_list = Apis.objects.all()
+    apis_list = Apis.objects.get_queryset().order_by('id')
     username = request.session.get('user', '')
-    apis_count = apis_list.count()  # 统计产品数
     paginator = Paginator(apis_list, 8)  # 生成paginator对象,设置每页显示8条记录
     page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
     currentPage = int(page)  # 把获取的当前页码数转换成整数类型
@@ -71,7 +70,6 @@ def apis_manage(request):
             "user": username,
             "apiss": apis_list,
             "currentPage": currentPage,
-            "apiscounts": apis_count
         })  # 把值赋给apiscounts这个变量
 
 
@@ -91,7 +89,7 @@ def apiinfos_manage(request):
 
 # 搜索功能-流程接口测试
 @login_required
-def apisearch(request):
+def apitestsearch(request):
     username = request.session.get('user', '')
     search_apitestname = request.GET.get('apitestname', '')
     apitest_list = Apitest.objects.filter(

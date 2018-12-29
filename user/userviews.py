@@ -23,16 +23,6 @@ def login(request):
     return render(request, 'login.html')
 
 
-# 首页左边导航
-def left(request):
-    return render(request, 'left.html')
-
-
-# 首页欢迎界面
-def welcome(request):
-    return render(request, 'welcome.html')
-
-
 # 首页
 @login_required
 def home(request):
