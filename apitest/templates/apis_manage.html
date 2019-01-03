@@ -91,25 +91,25 @@
     {# 上一页链接开始#}
     {% if apiss.has_previous %}
         {#  如果有上一页则正常显示上一页链接#}
-        <li class=""><a href="/apitest/apis_manage/?page={{ apiss.previous_page_number }}">上一页</a></li>    {#  上一页标签 #}
+        <li class=""><a href="?page={{ apiss.previous_page_number }}">&laquo;</a></li>    {#  上一页标签 #}
     {% else %}
-        <li class="disabled"><a href="#">上一页</a></li> {# 如果当前不存在上一页则上一页的链接不可点击#}
+        <li class="disabled"><a href="#">&laquo;</a></li> {# 如果当前不存在上一页则上一页的链接不可点击#}
     {% endif %}
     {# 上一页链接开始#}
 
-    {% for num in apiss.paginator.page_range %}     
-        {% if num == currentPage %}
-            <li class="active"><a href="/apitest/apis_manage/?page={{ num }}">{{ num }}</a></li> {#显示当页数链接#} 
+    {% for num in page_range %}     
+        {% if num == apiss.number %}
+            <li class="active"><a href="?page={{ num }}">{{ num }}</a></li> {#显示当页数链接#} 
         {% else %}
-            <li><a href="/apitest/apis_manage/?page={{ num }}">{{ num }}</a></li>
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
         {% endif %}
     {% endfor %}
 
     {# 下一页链接开始#}
     {% if apiss.has_next %} {#  如果有下一页则正常显示下一页链接#}
-        <li><a href="/apitest/apis_manage/?page={{ apiss.next_page_number }}">下一页</a></li>
+        <li><a href="?page={{ apiss.next_page_number }}">&raquo;</a></li>
     {% else %}
-        <li class="disabled"><a href="#">下一页</a></li>
+        <li class="disabled"><a href="#">&raquo;</a></li>
     {% endif %}
     {# 下一页链接结束#}
 {% endblock %} 

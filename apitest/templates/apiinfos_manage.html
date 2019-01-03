@@ -39,6 +39,7 @@
 
 {# 额外内容 #}
 {% block else %}
+    <pre>{{ response }}</pre>
     {% for apisinfo in apiinfos %}
         {% if apisinfo.api.id == apis.id  %}
             <div class="panel-group" id="accordion">
@@ -77,7 +78,7 @@
                                         <input type="text" class="form-control" style='color:green' value="{{ apisinfo.apistatus }}">
                                     {% else %}
                                         <input type="text" class="form-control" style='color:red' value="{{ apisinfo.apistatus }}">
-                                    {% endif %}                                
+                                    {% endif %}                  
                                 </div>
                                 <div class="input-group">
                                     <span class="input-group-addon update-time">执行时间：</span>

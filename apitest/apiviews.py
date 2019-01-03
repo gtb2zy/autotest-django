@@ -3,12 +3,12 @@ from apitest.models import Apistep, Apitest, Apis, Apiinfo
 import pymysql
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+from apitest.tests import login
 
 
 # Create your views here.
 def test(request):
-    # return HttpResponse('Hello test')
-    return render(request, 'left.html')
+    return render(request, 'home.html')
 
 
 # 接口管理
@@ -53,7 +53,7 @@ def apistep_manage(request):
 # API测试用例
 @login_required
 def apis_manage(request):
-    apis_list = Apis.objects.get_queryset().order_by('id')
+    apis_list = Apis.objects.all()
     username = request.session.get('user', '')
     paginator = Paginator(apis_list, 8)  # 生成paginator对象,设置每页显示8条记录
     page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
@@ -65,17 +65,37 @@ def apis_manage(request):
     except EmptyPage:
         apis_list = paginator.page(
             paginator.num_pages)  # 如果输入的页数不在系统的页数中则显示最后一页的内容
+
+    # 获取当前页面前后两页的页码
+    page_nums = paginator.num_pages  # 总页数
+    page_num = apis_list.number  # 当前页
+    page_range = [
+        x for x in range(int(page_num) - 2,
+                         int(page_num) + 3) if 0 < x <= page_nums
+    ]
+    # 给页码加首页和尾页，间隔页加'...'
+    if page_range[0] - 1 > 1:
+        page_range.insert(0, '...')
+    if page_range[-1] + 1 < page_nums:
+        page_range.append('...')
+    if page_range[0] != 1:
+        page_range.insert(0, 1)
+    if page_range[-1] != page_nums:
+        page_range.append(page_nums)
+
     return render(
         request, "apis_manage.html", {
             "user": username,
             "apiss": apis_list,
             "currentPage": currentPage,
+            "page_range": page_range,
         })  # 把值赋给apiscounts这个变量
 
 
 # API具体内容
 @login_required
 def apiinfos_manage(request):
+    response = login()
     user = request.session.get('user', '')
     apisid = request.GET.get('apis.id', None)
     apis = Apis.objects.get(id=apisid)
@@ -84,6 +104,7 @@ def apiinfos_manage(request):
         'user': user,
         'apis': apis,
         'apiinfos': apiinfos_list,
+        'response': response,
     })
 
 

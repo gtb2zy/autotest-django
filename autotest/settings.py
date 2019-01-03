@@ -150,3 +150,4 @@ CRONJOBS = [
     # 表示每天2：01执行
     ('0 15 * * *', 'apitest.test.test_apis')
 ]
+

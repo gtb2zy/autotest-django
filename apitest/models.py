@@ -60,6 +60,9 @@ class Apis(models.Model):
     class Meta:
         verbose_name = 'API测试用例'
         verbose_name_plural = 'API测试用例'
+        ordering = [
+            '-create_time',
+        ]
 
     def __str__(self):
         return self.apiname

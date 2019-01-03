@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from apitest.tests import test_apis
 
 # Create your views here.
 
@@ -26,6 +27,7 @@ def login(request):
 # 首页
 @login_required
 def home(request):
+    test_apis()
     return render(request, 'home.html')
 
 
