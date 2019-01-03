@@ -25,12 +25,46 @@
 {% endblock %} 
 
 {% block else %}
-    <div class="row" style="padding-top: 100px">
+    <div class="row" style="padding-top: 0px">
         <div class="container" style="text-align: center">
             <font size='8'>
                 <h1>欢迎您，来到 autotestplat V1.0</h1>
             </font>
-            <a href="{% url 'product_manage' %}">单击进入测试用例</a>
+            <a href="{% url 'product_manage' %}">单击进入产品中心</a>
         </div>
     </div>
+    <!-- 图表容器 DOM -->
+    <div style="margin: 0 auto; width: 600px;height:400px;">
+        <div id="container" style="height: 300px;"></div>
+    </div>
+    <!-- 引入 highcharts.js -->
+    <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
+    <script>
+        // 图表配置
+        var options = {
+            chart: {
+                type: 'line'                          //指定图表的类型，默认是折线图（line）
+            },
+            title: {
+                text: null                 // 标题
+            },
+            xAxis: {
+                categories: {{ login_times|safe }}   // x 轴分类
+            },
+            yAxis: {
+                title: {
+                    text: null,                // y 轴标题
+                },
+                labels: {
+                    enabled: false
+                }
+            },
+            series: [{                              // 数据列
+                name: '近期访问人数',                        // 数据列名
+                data: {{ login_num }}                 // 数据
+            }, ]
+        };
+        // 图表初始化函数
+        var chart = Highcharts.chart('container', options);
+    </script>
 {% endblock %}
