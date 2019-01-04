@@ -3,7 +3,7 @@
 {# 导航栏 #}
 {% block navbar %}
     <li class="active"><a href="{% url 'apis_manage' %}">api用例</a></li>
-    <li><a href="{% url 'apitest_manage' %}">流程接口</a></li>
+    <!-- <li><a href="{% url 'apitest_manage' %}">流程接口</a></li> -->
     <li><a href="{% url 'appcase_manage' %}">app用例</a></li>
     <li><a href="{% url 'webcase_manage' %}">web用例</a></li>
 {% endblock %}
@@ -39,7 +39,18 @@
 
 {# 额外内容 #}
 {% block else %}
-    <pre>{{ response }}</pre>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <a href="#login-info" data-toggle="collapse">测试登陆信息</a>
+            </h3>
+        </div>
+        <div class="panel-body panel-collapse collapse" id="login-info">
+            <div class="panel-body">
+                <span>{{ response }}</span>
+            </div>
+        </div>
+    </div>
     {% for apisinfo in apiinfos %}
         {% if apisinfo.api.id == apis.id  %}
             <div class="panel-group" id="accordion">
@@ -102,6 +113,70 @@
         {% else %}
         {% endif %}
     {% endfor %}
+    <div style="width: 100px;margin: 0 auto;">
+        <td>
+            <a style='color:light blue'  href="/apitest/apis_manage/" >
+                <img src="/static/admin/img/icon-yes.svg" alt="返回"/>返回
+            </a>
+            </td>        
+            <td>
+            <a style='color:light blue' 
+                class="related-widget-wrapper-link add-related" 
+                id="add_id_Apitest" 
+                href="/admin/apitest/apis/{{ apis.id  }}/change/?_to_field=id&amp;_popup=1">
+                <img src="/static/admin/img/icon-changelink.svg"/>编辑
+            </a>
+        </td>
+    </div>
+    <!-- 图表容器 DOM -->
+    <div style="margin: 0 auto; width: 600px;height:400px;">
+            <div id="container" style="height: 300px;"></div>
+    </div>
+    <!-- 引入 highcharts.js -->
+    <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
+    <script>
+        // 图表配置
+        var options = {
+            chart: {
+                type: 'column'                          //指定图表的类型，默认是折线图（line）
+            },
+            title: {
+                text: '一周内测试记录'                 // 标题
+            },
+            xAxis: {
+                categories: {{ test_times|safe }}   // x 轴分类
+            },
+            yAxis: {
+                title: {
+                    text: null,                // y 轴标题
+                },
+                labels: {
+                    enabled: true
+                }
+            },
+            colors: ['#058DC7', '#00FF00', '#FF0000', '#DDDF00',
+				 '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
+            series: [{                              // 数据列
+                name: 'ALL',                        // 数据列名
+                data: {{ test_all }}                 // 数据
+            },{
+                name: 'PASS',                        // 数据列名
+                data: {{ test_pass }}                 // 数据
+            },{
+                name: 'FAIL',                        // 数据列名
+                data: {{ test_fail }}                 // 数据
+            }, ],
+            plotOptions: {
+                column: {
+                    dataLabels: {
+                        enabled:true,
+                    },
+                },
+            }
+        };
+        // 图表初始化函数
+        var chart = Highcharts.chart('container', options);
+    </script>
     <script>
         // json对象转url格式，如{'xxx':'xxx','xxx':'xxx'}转为xxx=xxx&xxx=xxx   
         // data为json对象

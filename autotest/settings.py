@@ -151,3 +151,10 @@ CRONJOBS = [
     ('0 15 * * *', 'apitest.test.test_apis')
 ]
 
+# 数据库缓存设置
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}

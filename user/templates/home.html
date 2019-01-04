@@ -62,7 +62,14 @@
             series: [{                              // 数据列
                 name: '近期访问人数',                        // 数据列名
                 data: {{ login_num }}                 // 数据
-            }, ]
+            }, ],
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled:true,
+                    },
+                },
+            }
         };
         // 图表初始化函数
         var chart = Highcharts.chart('container', options);

@@ -4,6 +4,10 @@ import time
 import json
 import logging
 from apitest.models import Apis, Apiinfo
+from user.models import TestRecord
+from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+import datetime
 
 logging.basicConfig(
     level=logging.DEBUG, format='%(asctime)s-%(levelname)s-%(message)s')
@@ -33,6 +37,7 @@ TOKEN = ''
 # 登陆
 def login():
     api = loginApi
+    api['json']['timestamp'] = int(time.time())
     start = time.time()
     r = requests.Response()
     error = 'PASS'
@@ -76,6 +81,41 @@ def login():
     return r.text
 
 
+# 添加一次测试记录
+def add_one_test_record(object, resu):
+    test_time = timezone.now().date()
+    content_type = ContentType.objects.get_for_model(object)
+    test_record, _ = TestRecord.objects.get_or_create(
+        content_type=content_type, object_id=object.pk, test_time=test_time)
+    test_record.test_all += 1
+    if resu:
+        test_record.test_pass += 1
+    else:
+        test_record.test_fail += 1
+    test_record.save()
+
+
+# 获取测试记录
+def get_record(object):
+    today = timezone.now().date()
+    test_times = []
+    test_all = []
+    test_pass = []
+    test_fail = []
+    for i in range(6, -1, -1):
+        test_time = today - datetime.timedelta(days=i)
+        test_times.append(test_time.strftime('%d/%m/%Y'))
+        content_type = ContentType.objects.get_for_model(object)
+        test_record, _ = TestRecord.objects.get_or_create(
+            content_type=content_type,
+            object_id=object.pk,
+            test_time=test_time)
+        test_all.append(test_record.test_all)
+        test_pass.append(test_record.test_pass)
+        test_fail.append(test_record.test_fail)
+    return test_times, test_all, test_pass, test_fail
+
+
 # 测试API
 def test_apis():
     login()
@@ -110,7 +150,11 @@ def test_apis():
             result = api_request(apitest)
             apiinfo.apistatus = result
             apiinfo.save()
+            # 记录测试结果
+            add_one_test_record(apiinfo, result)
             api.apistatus = (result and api.apistatus)
+        # 记录测试结果
+        add_one_test_record(api, result)
         api.save()
 
 

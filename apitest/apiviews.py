@@ -3,7 +3,7 @@ from apitest.models import Apistep, Apitest, Apis, Apiinfo
 import pymysql
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
-from apitest.tests import login
+from apitest.tests import login, get_record
 
 
 # Create your views here.
@@ -99,13 +99,20 @@ def apiinfos_manage(request):
     user = request.session.get('user', '')
     apisid = request.GET.get('apis.id', None)
     apis = Apis.objects.get(id=apisid)
+    # 获取测试记录
+    test_times, test_all, test_pass, test_fail = get_record(apis)
     apiinfos_list = Apiinfo.objects.all()
-    return render(request, 'apiinfos_manage.html', {
-        'user': user,
-        'apis': apis,
-        'apiinfos': apiinfos_list,
-        'response': response,
-    })
+    return render(
+        request, 'apiinfos_manage.html', {
+            'user': user,
+            'apis': apis,
+            'apiinfos': apiinfos_list,
+            'test_times': test_times,
+            'test_all': test_all,
+            'test_pass': test_pass,
+            'test_fail': test_fail,
+            'response': response,
+        })
 
 
 # 搜索功能-流程接口测试

@@ -15,6 +15,9 @@ class Apitest(models.Model):
     class Meta:
         verbose_name = '流程场景接口'
         verbose_name_plural = '流程场景接口'
+        ordering = [
+            '-create_time',
+        ]
 
     def __str__(self):
         return self.apitestname
