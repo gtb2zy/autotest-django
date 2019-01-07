@@ -35,20 +35,28 @@
         </div>
         <div class="row">
             <div class="col-sm-4 col-sm-offset-4 form-body">
-                <form method="post" action="{% url 'login' %}" role="form">
+                <form method="post" action="{% url 'register' %}" role="form">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="username" style="font-size: 14px">用户名：</label>
                         <input class="form-control" id="username" name="username" type="text" placeholder="请输入用户名" required>
                     </div>
                     <div class="form-group">
+                        <label for="username" style="font-size: 14px">邮箱：</label>
+                        <input class="form-control" id="username" name="email" type="email" placeholder="请输入邮箱" required>
+                    </div>
+                    <div class="form-group">
                         <label for="password" style="font-size: 14px">密码：</label>
                         <input class="form-control" id="password" name="password" type="password" placeholder="请输入密码" required>
                     </div>
-                    <button class="btn btn-primary" id="submit" type="submit" style="font-size: 14px; width: 100%">登 录</button>
                     <div class="form-group">
-                        <a href="{% url 'register' %}">新用户注册</a> 
-                        <span style="color: red">&nbsp;&nbsp;&nbsp;{{ error }}</span>
+                        <label for="password" style="font-size: 14px">确认密码：</label>
+                        <input class="form-control" id="password" name="password_again" type="password" placeholder="请再次输入密码" required>
+                    </div>
+                    <button class="btn btn-primary" id="submit" type="submit" style="font-size: 14px; width: 100%">注册</button>
+                    <span style="color: red">&nbsp;&nbsp;&nbsp;{{ error }}</span>
+                    <div class="form-group">
+                        <a href="{% url 'login' %}">用户登陆</a>
                     </div>
                 </form>
             </div>

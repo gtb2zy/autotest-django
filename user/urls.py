@@ -4,5 +4,6 @@ from user import userviews
 urlpatterns = [
     path('login/', userviews.login, name='login'),
     path('home/', userviews.home, name='home'),
-    path('logout/', userviews.logout, name='logout')
+    path('logout/', userviews.logout, name='logout'),
+    path('register/', userviews.register, name='register')
 ]
