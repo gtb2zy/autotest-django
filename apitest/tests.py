@@ -104,7 +104,7 @@ def get_record(object):
     test_fail = []
     for i in range(6, -1, -1):
         test_time = today - datetime.timedelta(days=i)
-        test_times.append(test_time.strftime('%d/%m/%Y'))
+        test_times.append(test_time.strftime('%m/%d'))
         content_type = ContentType.objects.get_for_model(object)
         test_record, _ = TestRecord.objects.get_or_create(
             content_type=content_type,
@@ -123,6 +123,7 @@ def test_apis():
     for api in apis:
         # 预设为True
         api.apistatus = True
+        result = True
         apiinfos = Apiinfo.objects.filter(api=api)
         for apiinfo in apiinfos:
             apitest = {}

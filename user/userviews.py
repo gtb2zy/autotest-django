@@ -57,7 +57,7 @@ def home(request):
         login_record, _ = LoginRecord.objects.get_or_create(
             login_time=login_time)
         login_num.append(login_record.login_num)
-        login_times.append(login_time.strftime('%Y/%m/%d'))
+        login_times.append(login_time.strftime('%m/%d'))
 
     context = {}
     context['login_num'] = login_num

@@ -3,7 +3,6 @@
 {# 导航栏 #}
 {% block navbar %}
     <li class="active"><a href="{% url 'apis_manage' %}">api用例</a></li>
-    <!-- <li><a href="{% url 'apitest_manage' %}">流程接口</a></li> -->
     <li><a href="{% url 'appcase_manage' %}">app用例</a></li>
     <li><a href="{% url 'webcase_manage' %}">web用例</a></li>
 {% endblock %}
@@ -39,99 +38,242 @@
 
 {# 额外内容 #}
 {% block else %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">
-                <a href="#login-info" data-toggle="collapse">测试登陆信息</a>
-            </h3>
-        </div>
-        <div class="panel-body panel-collapse collapse" id="login-info">
-            <div class="panel-body">
-                <span>{{ response }}</span>
+<div class="container">
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <a href="#login-info" data-toggle="collapse">测试登陆信息</a>
+                </h3>
+            </div>
+            <div class="panel-collapse collapse" id="login-info">
+                <div class="panel-body">
+                    <span>{{ response }}</span>
+                </div>
             </div>
         </div>
     </div>
     {% for apisinfo in apiinfos %}
-        {% if apisinfo.api.id == apis.id  %}
-            <div class="panel-group" id="accordion">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            <a href="#{{ apisinfo.id }}" data-toggle="collapse">{{ apisinfo.apiname }}</a>
-                        </h3>
-                    </div>
-                    <div id="{{ apisinfo.id }}" class="panel-collapse collapse">
-                        <div class="panel-body">
-                            <!-- <form class="bs-example bs-example-form" role="form"> -->
-                                <div class="input-group">
-                                    <span class="input-group-addon url">&nbsp;&nbsp;&nbsp;&nbsp;URL&nbsp;地&nbsp;址：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.apiurl }}">
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <a href="#{{ apisinfo.id }}" data-toggle="collapse">{{ apisinfo.apiname }}</a>
+                        {% if apisinfo.apistatus == 1 %}
+                        <span style='color:green'>&nbsp;pass</span>
+                        {% else %}
+                        <span style='color:red'>fail</span>
+                        {% endif %} 
+                    </h3>
+                </div>
+                <div id="{{ apisinfo.id }}" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <form action="{% url 'modifyapi' %}?pk={{ apisinfo.id }}&apis_id={{ apisinfo.api_id }}" class="form-horizontal" role="form" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <div class="col-sm-5">
+                                    <input type="text" class="form-control hidden" name="api" value="{{ apisinfo.api_id }}">
                                 </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon param">请求PARAM：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.apiparamvalue }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-apiname" class="col-sm-1 control-label">API</label>
+                                <div class="col-sm-5">
+                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-apiname" name="apiname" value="{{ apisinfo.apiname }}">
                                 </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon json">请求数据JSON：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.apijson }}">
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon method">请求方法：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.apimethod }}">
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon except">响应数据JSON：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.apiresponse }}">
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon result">自动化测试结果：</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-result" class="col-sm-1 control-label">测试结果</label>
+                                <div class="col-sm-5">
                                     {% if apisinfo.apistatus == 1 %}
-                                        <input type="text" class="form-control" style='color:green' value="{{ apisinfo.apistatus }}">
+                                    <p class="form-control" id="{{ apisinfo.id }}-result" style='color:green'>{{ apisinfo.create_time }}&nbsp;&nbsp;&nbsp;pass</p>
                                     {% else %}
-                                        <input type="text" class="form-control" style='color:red' value="{{ apisinfo.apistatus }}">
-                                    {% endif %}                  
+                                    <p class="form-control" id="{{ apisinfo.id }}-result" style='color:red'>{{ apisinfo.create_time }}&nbsp;&nbsp;&nbsp;fail</p>
+                                    {% endif %} 
                                 </div>
-                                <div class="input-group">
-                                    <span class="input-group-addon update-time">执行时间：</span>
-                                    <input type="text" class="form-control" value="{{ apisinfo.create_time }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-url" class="col-sm-1 control-label">url</label>
+                                <div class="col-sm-2">
+                                    <select class="form-control" name="apimethod">
+                                        <option value={{ apisinfo.apimethod }}>{{ apisinfo.apimethod }}</option>
+                                        <option value="get">get</option>
+                                        <option value="post">post</option>
+                                        <option value="put">put</option>
+                                        <option value="patch">patch</option>
+                                        <option value="delete">delete</option>
+                                    </select>
                                 </div>
-                                <div>
-                                    <br>
-                                    <button class="test">测试</button>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-url" name="apiurl" value="{{ apisinfo.apiurl }}">
                                 </div>
-                                <div>
-                                    测试结果：<span class="result">unkonwn</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-param" class="col-sm-1 control-label">param</label>
+                                <div class="col-sm-5">
+                                    <textarea class="form-control" rows="3" column="10" name="apiparamvalue" id="{{ apisinfo.id }}-param">{{ apisinfo.apiparamvalue }}</textarea>
                                 </div>
-                                <div>
-                                    实际返回数据：<pre class="response">unkonwn</pre>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-body-type" class="col-sm-1 control-label">b-type</label>
+                                <div class="col-sm-5">
+                                    <select class="form-control" id="{{ apisinfo.id }}-body-type" name="bodytype">
+                                        <option value={{ apisinfo.bodytype }} selected>{{ apisinfo.bodytype }}</option>
+                                        <option value="application/json;charset=utf-8">application/json;charset=utf-8</option>
+                                        <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                                    </select>
                                 </div>
-                            <!-- </form> -->
-                        </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-body" class="col-sm-1 control-label">body</label>
+                                <div class="col-sm-5">
+                                    <textarea class="form-control" rows="3" column="10" name="apijson" id="{{ apisinfo.id }}-body">{{ apisinfo.apijson }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ apisinfo.id }}-response" class="col-sm-1 control-label">response</label>
+                                <div class="col-sm-5">
+                                    <textarea class="form-control" rows="3" column="10" name="apiresponse" id="{{ apisinfo.id }}-response">{{ apisinfo.apiresponse }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-1 col-sm-offset-1">
+                                    <button type="submit" class="btn btn-primary modify">修改</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-1 col-sm-offset-1">
+                                    <button type="button" class="btn btn-primary test">测试</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="response" class="col-sm-1 control-label">测试结果</label>
+                                <div class="col-sm-5">
+                                    <span class="form-control result">unkonwn</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="response" class="col-sm-1 control-label">响应数据</label>
+                                <div class="col-sm-5">
+                                    <pre class="response">unkonwn</pre>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-1 col-sm-offset-1">
+                                    <button type="button" class="btn btn-danger modify" data-toggle="modal" data-target="#{{ apisinfo.id }}_delete">删除</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
-        {% else %}
-        {% endif %}
+        </div>
+        <!-- 删除-模态框（Modal） -->
+        <div class="modal fade" id="{{ apisinfo.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title text-danger" id="myModalLabel">是否删除？</h4>
+                    </div>
+                    <div class="modal-body"><h4 class="text-info">{{ apisinfo.apiname }}</h4></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>      
+                        <a href="{% url 'deleteapiinfo' %}?pk={{ apisinfo.pk }}&apis_id={{ apisinfo.api_id }}">
+                            <button type="button" class="btn btn-primary">确定</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% endfor %}
+    <!-- 添加新的API -->
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <a href="#add_new_apiinfo" data-toggle="collapse" style="color: blue">添加新的API</a>
+                </h3>
+            </div>
+            <div id="add_new_apiinfo" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <form action="{% url 'addapiinfo' %}?apis_id={{ apis.pk }}" class="form-horizontal" role="form" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control hidden" name="api" value="{{ apis.pk }}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-apiname" class="col-sm-1 control-label">API</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="add-apiname" name="apiname" placeholder="请输入API名称" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-url" class="col-sm-1 control-label">url</label>
+                            <div class="col-sm-2">
+                                <select class="form-control" name="apimethod">
+                                    <option value="get">get</option>
+                                    <option value="post">post</option>
+                                    <option value="put">put</option>
+                                    <option value="patch">patch</option>
+                                    <option value="delete">delete</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="add-url" name="apiurl" placeholder="请输入URL(不包括http://www.wukoon-app.com)" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-param" class="col-sm-1 control-label">param</label>
+                            <div class="col-sm-5">
+                                <textarea class="form-control" rows="3" column="10" name="apiparamvalue" id="add-param" placeholder="请输入JSON格式，可以为空"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-body-type" class="col-sm-1 control-label">b-type</label>
+                            <div class="col-sm-5">
+                                <select class="form-control" id="add-body-type" name="bodytype">
+                                    <option value="application/json;charset=utf-8">application/json;charset=utf-8</option>
+                                    <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-body" class="col-sm-1 control-label">body</label>
+                            <div class="col-sm-5">
+                                <textarea class="form-control" rows="3" column="10" name="apijson" id="add-body" placeholder="请输入JSON格式，可以为空"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-response" class="col-sm-1 control-label">response</label>
+                            <div class="col-sm-5">
+                                <textarea class="form-control" rows="3" column="10" name="apiresponse" id="add-response" placeholder="请输入JSON格式" required>{{ apisinfo.apiresponse }}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-1 col-sm-offset-1">
+                                <button type="submit" class="btn btn-primary modify">添加</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 返回 -->
     <div style="width: 100px;margin: 0 auto;">
         <td>
             <a style='color:light blue'  href="/apitest/apis_manage/" >
                 <img src="/static/admin/img/icon-yes.svg" alt="返回"/>返回
             </a>
-            </td>        
-            <td>
-            <a style='color:light blue' 
-                class="related-widget-wrapper-link add-related" 
-                id="add_id_Apitest" 
-                href="/admin/apitest/apis/{{ apis.id  }}/change/?_to_field=id&amp;_popup=1">
-                <img src="/static/admin/img/icon-changelink.svg"/>编辑
-            </a>
-        </td>
+        </td>        
     </div>
     <!-- 图表容器 DOM -->
     <div class="container">
             <div id="container" class="col-sm-6 col-sm-offset-3" style="height: 300px;"></div>
     </div>
+</div>
     <!-- 引入 highcharts.js -->
     <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script>
@@ -166,10 +308,10 @@
                 name: 'FAIL',                        // 数据列名
                 data: {{ test_fail }}                 // 数据
             }, ],
-            plotOptions: {
+            plotOptions: {                            //显示数值
                 column: {
                     dataLabels: {
-                        enabled:true,
+                        enabled:false,
                     },
                 },
             }
@@ -177,6 +319,7 @@
         // 图表初始化函数
         var chart = Highcharts.chart('container', options);
     </script>
+    <!-- js函数 -->
     <script>
         // json对象转url格式，如{'xxx':'xxx','xxx':'xxx'}转为xxx=xxx&xxx=xxx   
         // data为json对象
@@ -194,60 +337,80 @@
                 return '';
             }
         }
-        //HTML加载完运行的函数
+        //HTML加载完运行的函数,ajax请求测试
         $(function(){
             // 格式化API参数，并显示
-            // 收到测试API
+            // var htmlparams=$('[name=apiparamvalue]')
+            // htmlparams.each(function(){
+            //     alert($(this).val())
+            //     if ($(this).val()!="None"){
+            //         $(this).text(JSON.stringify($(this).val(),null,4))          
+            //         }
+            //     })
             $("button.test").click(function(){
-                var method,url,json,result,response
-                alert("开始")
-                $(this).parent().prevAll().each(function(){
-                    if ($(this).find('span').attr("class")=="input-group-addon method"){
-                        method=$(this).find('input').val()
+                var method,url,param,bodytype,apijson,except,result,response
+                alert("开始测试")
+                $(this).parent().parent().prevAll().each(function(){
+                    if ($(this).find('[name=apimethod]').length){
+                        method=$(this).find('[name=apimethod]').val()
+                        // alert("method:"+method)
                     }
-                    if ($(this).find('span').attr("class")=="input-group-addon url"){
-                        url="https://www.wukoon-app.com"+$(this).find('input').val()
+                    if ($(this).find('[name=apiurl]').length){
+                        url="https://www.wukoon-app.com"+$(this).find('[name=apiurl]').val()
+                        // alert("url:"+url)
                     }
-                    if ($(this).find('span').attr("class")=="input-group-addon json"){
-                        json=$(this).find('input').val()
-                        if (json!="None"){
-                            json=JSON.parse(json)
-                            $.each(json,function(key, val){
-                                if (val=="NOW"){
-                                    json[key]=Date.parse(new Date())/1000
-                                }
-                            })
-                            json=JSON.stringify(json)
-                        }
-                    }
-                    if ($(this).find('span').attr("class")=="input-group-addon param"){
-                        param=$(this).find('input').val()
-                        if (param!="None"){
+                    if ($(this).find('[name=apiparamvalue]').length){
+                        param=$(this).find('[name=apiparamvalue]').val()
+                        if (param!="None"&&param!="" ){
                             param=parseParams(JSON.parse(param))
                             param="?"+param
                         }
+                        // alert("param:"+param)
                     }
-                    if ($(this).find('span').attr("class")=="input-group-addon except"){
-                        except=$(this).find('input').val()
-                        except=JSON.parse(except)
+                    if ($(this).find('[name=bodytype]').length){
+                        bodytype=$(this).find('[name=bodytype]').val()
+                        // alert("bodytype:"+bodytype)
+                    }
+                    if ($(this).find('[name=apijson]').length){
+                        apijson=$(this).find('[name=apijson]').val()
+                        if (apijson!="None"&&apijson!=""){
+                            apijson=JSON.parse(apijson)
+                            $.each(apijson,function(key, val){
+                                if (val=="NOW"){
+                                    apijson[key]=Date.parse(new Date())/1000
+                                }
+                            })
+                            apijson=JSON.stringify(apijson)
+                        }
+                        // alert("apijson:"+apijson)
+                    }
+                    if ($(this).find('[name=apiresponse]').length){
+                        except=$(this).find('[name=apiresponse]').val()
+                        if (except!="None"){
+                            except=JSON.parse(except)
+                        }
+                        // alert("except:"+except)
                     }
                 })
-                $(this).parent().nextAll().each(function(){
-                    if ($(this).children().attr("class")=="result"){
-                        result=$(this).children()
+                $(this).parent().parent().nextAll().each(function(){
+                    if ($(this).find('.result').length){
+                        result=$(this).find('.result')
                     }
-                    if ($(this).children().attr("class")=="response"){
-                        response=$(this).children()
+                    if ($(this).find('.response').length){
+                        response=$(this).find('.response')
                     }
                 })
+
+                // 把param加入url
                 if (param!="None"){
                     url=url+param
                 }
+                // ajax请求
                 $.ajax({
                     url:url,
                     type:method,
-                    data:json,
-                    contentType:"application/json;charset=utf-8",
+                    data:apijson,
+                    contentType:bodytype,
                     success:function(data,status){
                         $.each(except,function(key, val){
                             if (except[key]!=data[key]){
@@ -262,6 +425,11 @@
                         }
                         result.text(status)
                         response.text(JSON.stringify(data,null,4))
+                    },
+                    error:function(){
+                        result.css({"color":"red"})
+                        result.text("fail")
+                        response.text("4004 error")
                     }
                 })
             })

@@ -11,21 +11,14 @@
 {% block search_add %}
     <li>
         <form class="navbar-form" action="{% url 'prosearch' %}" method="GET" role="search">
-                <div class="form-group">
-                    <input type="search" name="productname" class="form-control" placeholder="产品名称">
-                </div>
-                <button type="submit" class="btn btn-default">搜索</button>
-                <button type="submit" class="btn btn-default">
-                    <a href="{% url 'product_manage' %}" style="color: rgb(51, 51, 51);">全部</a>
-                </button>
-                <button type="submit" class="btn btn-default" href="/apitest/apis_manage/">
-                    <a class="related-widget-wrapper-link add-related" 
-                        id="add_id_Product" 
-                        href="/admin/product/product/add/?_to_field=id&amp;_popup=1" 
-                        title="添加另一个产品" style="color: rgb(51, 51, 51);">
-                        添加
-                    </a>
-                </button>
+            <div class="form-group">
+                <input type="search" name="productname" class="form-control" placeholder="按产品名查找" required>
+            </div>
+            <button type="submit" class="btn btn-default">搜索</button>
+            <button type="button" class="btn btn-default">
+                <a href="{% url 'product_manage' %}" style="color: rgb(51, 51, 51);">全部</a>
+            </button>
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal">添加</button>
         </form>
     </li>
 {% endblock %}
@@ -35,6 +28,7 @@
 <tr>
     <th>产品名称</th>
     <th>产品描述</th>
+    <th>测试用例</th>
     <th>产品负责人</th>
     <th>创建时间</th>
     <th>编辑</th>
@@ -46,15 +40,59 @@
 {% block tbody %}
     {% for product in products %}
         <tr>
-            <td><a href="{% url "apis_manage" %}">
-                {{product.productname}}
+            <td>{{ product.productname }}</td>
+            <td>{{ product.productdesc }}</td>
+            <td>
+                <a href="{% url "apis_manage" %}?product_id={{ product.pk }}">api</a>
+            </td>
+            <td>{{ product.producter }}</td>
+            <td>{{ product.create_time }}</td>
+            <td>
+                <a data-toggle="modal" href="#{{ product.id }}_modify">
+                <img src="/static/admin/img/icon-changelink.svg"/>
                 </a>
             </td>
-            <td>{{product.productdesc}}</td>
-            <td>{{product.producter}}</td>
-            <td>{{product.create_time}}</td>
-            <td><a style='color:light blue' class="related-widget-wrapper-link add-related" id="add_id_Product" href="/admin/product/product/{{ product.id  }}/change/?_to_field=id&_popup=1"><img src="/static/admin/img/icon-changelink.svg"/></a></td>
-            <td><a style='color:light blue' class="related-widget-wrapper-link add-related" id="add_id_Product" href="/admin/product/product/{{ product.id  }}/delete/?_to_field=id&_popup=1"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
+            <td><a data-toggle="modal" href="#{{ product.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
+            <!-- 删除-模态框（Modal） -->
+            <div class="modal fade" id="{{ product.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title text-danger" id="myModalLabel">是否删除？</h4>
+                        </div>
+                        <div class="modal-body"><h4 class="text-info">{{ product.productname }}</h4></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>      
+                            <a href="{% url 'deletepro' %}?pk={{ product.pk }}">
+                                <button type="button" class="btn btn-primary">确定</button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </tr>
+        <!-- 修改-模态框（Modal） form放在tr有BUG，显示异常-->
+        <div class="modal fade" id="{{ product.id }}_modify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title text-danger" id="myModalLabel">是否修改？</h4>
+                        </div>
+                        <div class="modal-body" class="navbar-form">
+                                <h4 class="text-info">功能未完成，后续开发</h4>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">确定</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    {% empty %}
+        <tr>
+            <td colspan="111">暂无产品</td>
         </tr>
     {% endfor %}
 {% endblock %}
@@ -75,9 +113,9 @@
     {% endif %}
     {# 上一页链接开始#}
 
-    {% for num in products.paginator.page_range %}
+    {% for num in page_range %}
 
-        {% if num == currentPage %}
+        {% if num == products.number %}
             <li class="active"><a href="/product/product_manage/?page={{ num }}">{{ num }}</a></li> {#显示当页数链接#} 
         {% else %}
             <li><a href="/product/product_manage/?page={{ num }}">{{ num }}</a></li>
@@ -91,4 +129,27 @@
         <li class="disabled"><a href="#">下一页</a></li>
     {% endif %}
     {# 下一页链接结束#}
-{% endblock %} 
+{% endblock %}
+{% block else %}
+<!-- 添加产品 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title text-info" id="myModalLabel">新增产品</h4>
+            </div>
+            <form action="{% url 'addpro' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body" class="navbar-form">
+                        {{ product_form }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

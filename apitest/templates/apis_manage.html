@@ -3,7 +3,6 @@
 {# 导航栏 #}
 {% block navbar %}
     <li class="active"><a href="{% url 'apis_manage' %}">api用例</a></li>
-    <!-- <li><a href="{% url 'apitest_manage' %}">流程接口</a></li> -->
     <li><a href="{% url 'appcase_manage' %}">app用例</a></li>
     <li><a href="{% url 'webcase_manage' %}">web用例</a></li>
 {% endblock %}
@@ -13,17 +12,13 @@
     <li>
         <form class="navbar-form" action="{% url 'apissearch' %}" method="GET" role="search">
                 <div class="form-group">
-                    <input type="search" name="apiname" class="form-control" placeholder="后端模块">
+                    <input type="search" name="apiname" class="form-control" placeholder="后端模块" required>
                 </div>
                 <button type="submit" class="btn btn-default">搜索</button>
-                <button type="submit" class="btn btn-default">
+                <button type="button" class="btn btn-default">
                     <a href="{% url 'apis_manage' %}" style="color: rgb(51, 51, 51);">全部</a>
                 </button>
-                <button type="submit" class="btn btn-default" href="/apitest/apis_manage/">
-                    <a class="related-widget-wrapper-link add-related" id="add_id_Apis" href="/admin/apitest/apis/add/?_to_field=id&amp;_popup=1" title="增加另一个 测试用例" style="color: rgb(51, 51, 51);">
-                        添加
-                    </a>
-                </button>
+                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal">添加</button>
         </form>
     </li>
 {% endblock %}
@@ -60,24 +55,57 @@
         </td>
         <td>{{ apis.create_time }}</td>
         <td>{{ apis.update_time }}</td>
-        <!-- <td><a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
-            <img src="/static/admin/img/icon-yes.svg"/>
-        </a></td> -->
-        <td><a style='color:light blue' 
-                class="related-widget-wrapper-link add-related" 
-                id="add_id_Apis" 
-                href="/admin/apitest/apis/{{ apis.id  }}/change/?_to_field=id&amp;_popup=1">
-                <img src="/static/admin/img/icon-changelink.svg"/>
+        <td>
+            <a data-toggle="modal" href="#{{ apis.id }}_modify">
+            <img src="/static/admin/img/icon-changelink.svg"/>
             </a>
         </td>
-        <td><a style='color:light blue' 
-                class="related-widget-wrapper-link add-related" 
-                id="add_id_Apis" 
-                href="/admin/apitest/apis/{{ apis.id  }}/delete/?_to_field=id&amp;_popup=1">
-                <img src="/static/admin/img/icon-deletelink.svg"/>
-            </a>
-        </td>
+        <!-- 修改-模态框（Modal） form放在tr有BUG，显示异常-->
+        <div class="modal fade" id="{{ apis.id }}_modify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title text-danger" id="myModalLabel">是否修改？</h4>
+                        </div>
+                        <div class="modal-body" class="navbar-form">
+                                <h4 class="text-info">功能未完成，后续开发</h4>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">确定</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        <td><a data-toggle="modal" href="#{{ apis.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
+        <!-- 删除-模态框（Modal） -->
+        <div class="modal fade" id="{{ apis.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title text-danger" id="myModalLabel">是否删除？</h4>
+                    </div>
+                    <div class="modal-body"><h4 class="text-info">{{ apis.apiname }}</h4></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>      
+                        <a href="{% url 'deleteapis' %}?pk={{ apis.pk }}">
+                            <button type="button" class="btn btn-primary">确定</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     <tr />
+    {% empty %}
+    <tr>
+        <td colspan="111">暂无API&nbsp;&nbsp;&nbsp;&nbsp;
+            <a style='color:light blue'  href="{% url 'product_manage' %}" >
+                <img src="/static/admin/img/icon-yes.svg" alt="产品中心"/>产品中心
+            </a>
+        </td>
+    </tr>
     {% endfor %}
 {% endblock %}
 
@@ -112,4 +140,28 @@
         <li class="disabled"><a href="#">&raquo;</a></li>
     {% endif %}
     {# 下一页链接结束#}
-{% endblock %} 
+
+{% endblock %}
+{% block else %}
+<!-- 添加API 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title text-info" id="myModalLabel">新增API模块</h4>
+            </div>
+            <form action="{% url 'addapis' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body" class="navbar-form">
+                        {{ apis_form }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

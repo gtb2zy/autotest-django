@@ -1,65 +1,32 @@
 from django.shortcuts import render
-from apitest.models import Apistep, Apitest, Apis, Apiinfo
-import pymysql
+from apitest.models import Apis, Apiinfo
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
-from apitest.tests import login, get_record
+from apitest.tests import get_record, login
+from django.http import HttpResponseRedirect
+from .forms import ApisForm, ApiinfoForm
+from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 
 
 # Create your views here.
-def test(request):
-    return render(request, 'home.html')
-
-
-# 接口管理
-@login_required
-def apitest_manage(request):
-    apitest_list = Apitest.objects.all()
-    username = request.session.get('user', '')
-    apitest_count = apitest_list.count()  # 统计总数
-    paginator = Paginator(apitest_list, 8)  # 设置每页显示8条记录
-    page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
-    currentPage = int(page)  # 把获取的当前页码数转换成整数类型
-    try:
-        apitest_list = paginator.page(page)  # 获取当前页码数的记录列表
-    except PageNotAnInteger:
-        apitest_list = paginator.page(1)  # 如果输入的页数不是整数则显示第1页的内容
-    except EmptyPage:
-        apitest_list = paginator.page(
-            paginator.num_pages)  # 如果输入的页数不在系统的页数中则显示最后一页的内容
-    return render(
-        request, 'apitest_manage.html', {
-            'user': username,
-            'apitest_count': apitest_count,
-            'currentPage': currentPage,
-            'apitests': apitest_list,
-        })
-
-
-# 接口步骤管理
-@login_required
-def apistep_manage(request):
-    username = request.session.get('user', '')
-    apitestid = request.GET.get('apitest.id', None)
-    apitest = Apitest.objects.get(id=apitestid)
-    apistep_list = Apistep.objects.all()  # 获取所有接口测试用例
-    return render(request, "apistep_manage.html", {
-        "user": username,
-        "apitest": apitest,
-        "apisteps": apistep_list
-    })
-
-
 # API测试用例
 @login_required
 def apis_manage(request):
-    apis_list = Apis.objects.all()
+    product_id = request.GET.get('product_id', '')
+    apiname = request.GET.get('apiname', '')
+    if product_id:
+        apis_list = Apis.objects.filter(Product_id=product_id)
+    elif apiname:
+        apis_list = Apis.objects.filter(apiname__icontains=apiname)
+    else:
+        apis_list = Apis.objects.all()
     username = request.session.get('user', '')
     paginator = Paginator(apis_list, 8)  # 生成paginator对象,设置每页显示8条记录
     page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
     currentPage = int(page)  # 把获取的当前页码数转换成整数类型
     try:
-        apis_list = paginator.page(page)  # 获取当前页码数的记录列表
+        apis_list = paginator.page(currentPage)  # 获取当前页码数的记录列表
     except PageNotAnInteger:
         apis_list = paginator.page(1)  # 如果输入的页数不是整数则显示第1页的内容
     except EmptyPage:
@@ -82,97 +49,134 @@ def apis_manage(request):
         page_range.insert(0, 1)
     if page_range[-1] != page_nums:
         page_range.append(page_nums)
-
-    return render(
-        request, "apis_manage.html", {
-            "user": username,
-            "apiss": apis_list,
-            "currentPage": currentPage,
-            "page_range": page_range,
-        })  # 把值赋给apiscounts这个变量
+    apis_form = ApisForm()
+    context = {}
+    context['user'] = username
+    context['apiss'] = apis_list
+    context['page_range'] = page_range
+    context['apis_form'] = apis_form
+    return render(request, "apis_manage.html", context)  # 把值赋给apiscounts这个变量
 
 
 # API具体内容
 @login_required
 def apiinfos_manage(request):
+    # 获取登陆API信息，用于后续测试
     response = login()
+
     user = request.session.get('user', '')
     apisid = request.GET.get('apis.id', None)
     apis = Apis.objects.get(id=apisid)
+    apiinfos_list = Apiinfo.objects.filter(api_id=apisid)
     # 获取测试记录
     test_times, test_all, test_pass, test_fail = get_record(apis)
-    apiinfos_list = Apiinfo.objects.all()
-    return render(
-        request, 'apiinfos_manage.html', {
-            'user': user,
-            'apis': apis,
-            'apiinfos': apiinfos_list,
-            'test_times': test_times,
-            'test_all': test_all,
-            'test_pass': test_pass,
-            'test_fail': test_fail,
-            'response': response,
-        })
+    context = {}
+    context['user'] = user
+    context['apis'] = apis
+    context['apiinfos'] = apiinfos_list
+    context['test_times'] = test_times
+    context['test_all'] = test_all
+    context['test_pass'] = test_pass
+    context['test_fail'] = test_fail
+    context['response'] = response
+    context['apiinfo_form'] = ApiinfoForm()
+    return render(request, 'apiinfos_manage.html', context)
 
 
-# 搜索功能-流程接口测试
-@login_required
-def apitestsearch(request):
-    username = request.session.get('user', '')
-    search_apitestname = request.GET.get('apitestname', '')
-    apitest_list = Apitest.objects.filter(
-        apitestname__icontains=search_apitestname)
-    return render(request, 'apitest_manage.html', {
-        'user': username,
-        'apitests': apitest_list,
-    })
-
-
-# 搜索功能-流程接口测试步骤
-@login_required
-def apistepsearch(request):
-    username = request.session.get('user', '')
-    search_apiname = request.GET.get('apiname', '')
-    apistep_list = Apistep.objects.filter(apiname__icontains=search_apiname)
-    return render(request, 'apistep_manage.html', {
-        'user': username,
-        'apisteps': apistep_list,
-    })
-
-
-# 搜索功能-单一接口测试
+# 搜索功能
 @login_required
 def apissearch(request):
-    username = request.session.get('user', '')
-    search_apiname = request.GET.get('apiname', '')
-    apis_list = Apis.objects.filter(apiname__icontains=search_apiname)
-    return render(request, 'apis_manage.html', {
-        'user': username,
-        'apiss': apis_list,
-    })
+    apiname = request.GET.get('apiname', '')
+    return HttpResponseRedirect('/apitest/apis_manage/?apiname=%s' % (apiname))
 
 
-# 测试报告
+# 添加API模块
 @login_required
-def test_report(request):
-    username = request.session.get('user', '')
-    apis_list = Apis.objects.all()
-    apis_count = apis_list.count()
-    db = pymysql.connect(
-        user='root', db='autotest', passwd='test123456', host='127.0.0.1')
-    cursor = db.cursor()
-    sql1 = 'SELECT count(id) FROM apitest_apis WHERE apitest_apis.apistatus=1'
-    aa = cursor.execute(sql1)
-    apis_pass_count = [row[0] for row in cursor.fetchmany(aa)][0]
-    sql2 = 'SELECT count(id) FROM apitest_apis WHERE apitest_apis.apistatus=0'
-    bb = cursor.execute(sql2)
-    apis_fail_count = [row[0] for row in cursor.fetchmany(bb)][0]
-    db.close()
-    return render(
-        request, "report.html", {
-            'user': username,
-            "apiss": apis_list,
-            "apiscounts": apis_count,
-            "apis_pass_counts": apis_pass_count,
-            "apis_fail_counts": apis_fail_count
-        })  # 把值赋给apiscounts这个变量
+def add(request):
+    if request.POST:
+        apis_form = ApisForm(request.POST)
+        # 必须先判断is_valid()，否则cleaned_data不存在
+        if apis_form.is_valid():
+            apis_form.cleaned_data['creater'] = request.user
+            apis_form.save()
+            return HttpResponseRedirect('/apitest/apis_manage/')
+
+        else:
+            # API已存在
+            print('API已存在')
+            return HttpResponseRedirect('/apitest/apis_manage/')
+
+
+# 添加API内容信息
+@login_required
+def add_apiinfo(request):
+    apis_id = request.GET.get('apis_id')
+    if request.POST:
+        apiinfo_form = ApiinfoForm(request.POST)
+        apiname = request.POST.get('apiname')
+        if Apiinfo.objects.filter(apiname=apiname).exists():
+            print('api名字已存在')
+        else:
+            if apiinfo_form.is_valid():
+                apiinfo_form.save()
+                print('apiinfo保存')
+
+            else:
+                print(apiinfo_form.errors)
+
+        return HttpResponseRedirect(
+            '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+
+
+# 删除API模块
+@login_required
+def delete(request):
+    print('删除')
+    if request.user == User.objects.all()[0]:
+        pk = request.GET.get('pk', '')
+        apis = Apis.objects.filter(pk=pk)
+        apis.delete()
+    return HttpResponseRedirect('/apitest/apis_manage/')
+
+
+# 删除API内容信息
+@login_required
+def delete_info(request):
+    print('删除')
+    apis_id = request.GET.get('apis_id')
+    if request.user == User.objects.all()[0]:
+        pk = request.GET.get('pk', '')
+        apiinfo = Apiinfo.objects.filter(pk=pk)
+        apiinfo.delete()
+    return HttpResponseRedirect(
+        '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+
+
+# 修改API内容信息
+@login_required
+def modify_apiinfo(request):
+    pk = request.GET.get('pk')
+    apis_id = request.GET.get('apis_id')
+    apiinfo = Apiinfo.objects.get(pk=pk)
+    data = model_to_dict(apiinfo)
+    # data.pop('id')
+    # data.pop('apistatus')
+    print(data)
+    # 注意 instance=apiinfo因为是用ModelForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
+    apiinfo_form = ApiinfoForm(request.POST, initial=data, instance=apiinfo)
+    if apiinfo_form.has_changed:
+        if len(apiinfo_form.changed_data):
+            for field in apiinfo_form.changed_data:
+                print(field + '已被修改')
+            if apiinfo_form.is_valid():
+                apiinfo_form.cleaned_data['api'] = Apis.objects.get(pk=apis_id)
+                print(apiinfo_form.cleaned_data['api'])
+                apiinfo_form.save()
+                print('修改成功')
+        else:
+            print('没有变化，不保存')
+    else:
+        print('没有变化，不保存')
+
+    return HttpResponseRedirect(
+        '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
