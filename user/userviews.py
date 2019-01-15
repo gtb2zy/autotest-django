@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import LoginRecord
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+# from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 import datetime
 import string
 import random
@@ -18,27 +19,49 @@ import random
 # 用户登陆
 def login(request):
     if request.POST:
-        username = request.POST.get('username', '')
+        username_email = request.POST.get('username', '')
         password = request.POST.get('password', '')
-        # 验证用户密码是否正确
-        user = auth.authenticate(username=username, password=password)
-        if user is not None and user.is_active:
-            # 用户密码正确，登陆
-            auth.login(request, user)
-            request.session['user'] = username
-            # 添加一次流量记录，并加入cookie记录，防止刷记录
-            if not request.COOKIES.get(username):
-                date = timezone.now().date()
-                login_record, _ = LoginRecord.objects.get_or_create(
-                    login_time=date)
-                login_record.login_num += 1
-                login_record.save()
-            # home.html 首页
-            response = HttpResponseRedirect('/user/home/')
-            response.set_cookie(username, 'true', max_age=600)
-            return response
+
+        # 判断登陆方式
+        # 密码登陆
+        if password:
+            # 判断邮箱是否存在,存在：获取用户名；不存在：把username_email当用户名
+            if User.objects.filter(email=username_email).exists():
+                username = User.objects.get(email=username_email).username
+            else:
+                username = username_email
+            # 验证用户密码是否正确
+            user = auth.authenticate(username=username, password=password)
+            if user is not None and user.is_active:
+                # 用户密码正确，登陆
+                auth.login(request, user)
+                request.session['user'] = username
+                # 添加一次流量记录，并加入cookie记录，防止刷记录
+                if not request.COOKIES.get(username):
+                    date = timezone.now().date()
+                    login_record, _ = LoginRecord.objects.get_or_create(
+                        login_time=date)
+                    login_record.login_num += 1
+                    login_record.save()
+                # home.html 首页
+                response = HttpResponseRedirect('/user/home/')
+                response.set_cookie(username, 'true', max_age=600)
+                return response
+            else:
+                return render(request, 'login.html', {'error': '用户名或密码错误'})
+        # 邮箱动态验证码登陆
         else:
-            return render(request, 'login.html', {'error': '用户名或密码错误'})
+            # 判断邮箱是否存在
+            if User.objects.filter(email=username_email).exists():
+                code = request.POST.get('code', '')
+                # 验证码一致，登陆
+                if request.session.get(username_email, '') == code:
+                    return render(request, 'login.html', {'error': '验证码一致,但是功能未完成'})
+                else:
+                    return render(request, 'login.html', {'error': '验证码错误'})
+            # 邮箱不存在
+            else:
+                return render(request, 'login.html', {'error': '邮箱不存在'})
 
     else:
         return render(request, 'login.html')
@@ -77,28 +100,41 @@ def logout(request):
 # 获取验证码
 def get_code(request):
     data = {}
-    # 获取4位随机数（小写字母+数字）
-    code = ''.join(random.sample(string.ascii_lowercase + string.digits, 4))
     # 验证邮箱
     email = request.GET.get('email', '')
-    # if User.objects.filter(email=email).exists():
-    #     data['status'] = '邮箱已注册'
+    # 判断验证码是否已经存在session中
+    if request.session.get(email, ''):
+        data['status'] = '验证码已发送，请稍后再获取'
 
-    # else:
-    try:
-        # 发送邮件
-        send_mail(
-            'LONGSYS自动化测试平台',
-            '验证码：' + code,
-            '18129832245@163.com',
-            [email],
-            fail_silently=False,
-        )
-        data['status'] = 'SUCCESS'
-        request.session[email] = code
-    except Exception as e:
-        print(e)
-        data['status'] = '发送失败'
+    else:
+        # 获取4位随机数（小写字母+数字）
+        code = ''.join(
+            random.sample(string.ascii_lowercase + string.digits, 4))
+        try:
+            # 发送邮件
+            # send_mail(
+            #     'LONGSYS自动化测试平台',
+            #     '验证码：' + code,
+            #     '18129832245@163.com',
+            #     [email],
+            #     fail_silently=False,
+            # )
+            html_content = "<p><strong>验证码：%s</strong></p>\
+                <p>This is an <font size=3 color='green'><strong>important</strong></font> message.</p>" % (
+                code)
+            msg = EmailMessage(
+                'LONGSYS自动化测试平台',
+                html_content,
+                '18129832245@163.com',
+                [email],
+            )
+            msg.content_subtype = 'html'
+            msg.send()
+            data['status'] = 'SUCCESS'
+            request.session[email] = code
+        except Exception as e:
+            print(e)
+            data['status'] = '发送失败'
 
     return JsonResponse(data)
 
@@ -118,7 +154,7 @@ def register(request):
                 raise Exception('邮箱已存在')
 
             # 验证验证码
-            code = request.POST.get('code', '')
+            code = request.POST.get('code', '').lower()
             if request.session.get(email, '') != code:
                 raise Exception('验证码错误')
 
@@ -156,7 +192,7 @@ def change_psw(request):
                 raise Exception('用户不存在')
 
             # 验证验证码
-            code = request.POST.get('code', '')
+            code = request.POST.get('code', '').lower()
             if request.session.get(email, '') != code:
                 raise Exception('验证码错误')
 

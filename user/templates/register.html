@@ -49,25 +49,27 @@
                     </div>
                     <div class="form-group">
                         <label for="code" style="font-size: 14px">验证码</label>
-                        <input class="form-control" id="code" name="code" type="text" placeholder="请输入邮箱" required>
-    
-
+                        <div class="input-group">
+                            <input class="form-control" id="code" name="code" type="text" placeholder="请输入邮箱验证码" required>
+                            <span class="input-group-btn">
+                                <button id="get_code" class="btn btn-primary" type="button">获取验证码</button>
+                            </span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="password" style="font-size: 14px">密码：</label>
+                        <label for="password" style="font-size: 14px">密码</label>
                         <input class="form-control" id="password" name="password" type="password" placeholder="请输入密码" required>
                     </div>
                     <div class="form-group">
-                        <label for="password_again" style="font-size: 14px">确认密码：</label>
+                        <label for="password_again" style="font-size: 14px">确认密码</label>
                         <input class="form-control" id="password_again" name="password_again" type="password" placeholder="请再次输入密码" required>
                     </div>
-                    <button type="button" class="btn btn-primary pull-right" id="get_code" style="font-size: 14px; width: 40%">获取邮箱验证码</button>
-                    <button class="btn btn-primary" id="submit" type="submit" style="font-size: 14px; width: 40%">注册账号</button>
-                    <div style="height: 30px;">
-                        <a href="{% url 'login' %}" style="line-height: 30px">用户登陆</a>
-                        <span style="color: red; line-height: 30px" id="error" class="pull-right">&nbsp;&nbsp;&nbsp;{{ error }}</span>
-                    </div>
+                    <button class="btn btn-primary" id="submit" type="submit" style="font-size: 14px; width: 100%">注册账号</button>
                 </form>
+                <div style="height: 30px;">
+                    <a href="{% url 'login' %}" style="line-height: 30px">用户登陆</a>
+                    <span style="color: red; line-height: 30px" id="error" class="pull-right">&nbsp;&nbsp;&nbsp;{{ error }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -76,14 +78,31 @@
             // 获取验证码
             $('#get_code').click(function(){
                 email = $('#email')
-                email.attr('readonly','readonly')
                 url = "{% url 'get_code' %}?email="+email.val()
                 $.ajax({
                     url:url,
                     type:"GET",
                     success:function(data){
                         if (data['status'] == 'SUCCESS'){
-                            alert('发送成功')
+                            alert('发送成功');
+
+                            // 把按键变灰色    
+                            $('#get_code').attr("disabled",true);
+                            var time = 30;
+                            $('#get_code').text(time+"s");
+                            // 设置定时器30s
+                            var interval=setInterval(function(){
+                                if (time<=1){
+                                    // 恢复按键    
+                                    $('#get_code').attr("disabled",false);
+                                    $('#get_code').text("获取验证码");
+                                    clearInterval(interval);
+                                }
+                                else{
+                                    time--;
+                                    $('#get_code').text(time+"s");
+                                }
+                            },1000)
                         }
                         else{
                             alert(data['status'])
