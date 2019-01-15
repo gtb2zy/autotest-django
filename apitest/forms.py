@@ -1,6 +1,7 @@
 from django import forms
 from .models import Apis, Apiinfo
 
+# 测试
 
 class ApisForm(forms.ModelForm):
     class Meta:
