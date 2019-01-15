@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.contrib import auth
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
-from apitest.tests import test_apis
 from django.utils import timezone
 from .models import LoginRecord
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 import datetime
+import string
+import random
 
 # from django.core.cache import cache
 
@@ -45,9 +47,6 @@ def login(request):
 # 首页
 @login_required
 def home(request):
-    # 测试API
-    if not request.COOKIES.get('test_apis'):
-        test_apis()
     # 统计最近七天的访问人数
     date = timezone.now().date()
     login_num = []
@@ -69,11 +68,39 @@ def home(request):
 
 # 退出
 def logout(request):
+    # 用户注销
     auth.logout(request)
+    response = HttpResponseRedirect('/user/login/')
+    return response
 
-    # response = HttpResponseRedirect('/login/')
-    # return response
-    return render(request, 'login.html')
+
+# 获取验证码
+def get_code(request):
+    data = {}
+    # 获取4位随机数（小写字母+数字）
+    code = ''.join(random.sample(string.ascii_lowercase + string.digits, 4))
+    # 验证邮箱
+    email = request.GET.get('email', '')
+    # if User.objects.filter(email=email).exists():
+    #     data['status'] = '邮箱已注册'
+
+    # else:
+    try:
+        # 发送邮件
+        send_mail(
+            'LONGSYS自动化测试平台',
+            '验证码：' + code,
+            '18129832245@163.com',
+            [email],
+            fail_silently=False,
+        )
+        data['status'] = 'SUCCESS'
+        request.session[email] = code
+    except Exception as e:
+        print(e)
+        data['status'] = '发送失败'
+
+    return JsonResponse(data)
 
 
 # 注册
@@ -81,13 +108,20 @@ def register(request):
     if request.POST:
         try:
             # 验证用户名
-            username = request.POST.get('username', '')
+            username = request.POST.get('username', '').strip()
             if User.objects.filter(username=username).exists():
                 raise Exception('用户名已存在')
+
             # 验证邮箱
             email = request.POST.get('email', '')
             if User.objects.filter(email=email).exists():
                 raise Exception('邮箱已存在')
+
+            # 验证验证码
+            code = request.POST.get('code', '')
+            if request.session.get(email, '') != code:
+                raise Exception('验证码错误')
+
             # 验证输入密码
             password = request.POST.get('password', '')
             password_again = request.POST.get('password_again', '')
@@ -107,3 +141,41 @@ def register(request):
         return HttpResponseRedirect('/user/home/')
     else:
         return render(request, 'register.html')
+
+
+# 重置密码
+def change_psw(request):
+    if request.POST:
+        try:
+            # 通过邮箱获取用户
+            email = request.POST.get('email', '')
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+
+            else:
+                raise Exception('用户不存在')
+
+            # 验证验证码
+            code = request.POST.get('code', '')
+            if request.session.get(email, '') != code:
+                raise Exception('验证码错误')
+
+            # 验证输入密码
+            password = request.POST.get('password', '')
+            password_again = request.POST.get('password_again', '')
+            if password != password_again:
+                raise Exception('两次输入密码不一致')
+
+            else:
+                user.set_password(password)
+                print(password)
+                user.save()
+
+        except Exception as e:
+            return render(request, 'change_pwd.html', {'error': e})
+
+        # 注册成功，跳转到登陆页面
+        return HttpResponseRedirect('/user/login/')
+
+    else:
+        return render(request, 'change_pwd.html')

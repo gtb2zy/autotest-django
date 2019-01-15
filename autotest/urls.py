@@ -17,10 +17,10 @@ from django.contrib import admin
 from django.urls import path, include
 from bug import bugviews
 from sets import setsviews
-from user.userviews import login
+from user.userviews import home
 
 urlpatterns = [
-    path('', login),
+    path('', home),
     path('admin/', admin.site.urls,),
     path('user/', include('user.urls')),
     path('apitest/', include('apitest.urls')),

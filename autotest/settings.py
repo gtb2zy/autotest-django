@@ -147,8 +147,8 @@ STATICFILES_DIRS = (
 
 # 定时任务最简单配置
 CRONJOBS = [
-    # 表示每天2：01执行
-    ('0 15 * * *', 'apitest.test.test_apis')
+    # 表示每天12：00执行
+    ('00 12 * * *', 'apitest.tests.test_apis', '>>' + os.path.join(BASE_DIR, 'cronlog/crons.log'))
 ]
 
 # 数据库缓存设置
@@ -158,3 +158,11 @@ CACHES = {
         'LOCATION': 'my_cache_table',
     }
 }
+
+# 邮箱设置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'    # 导入邮件模块
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = '18129832245@163.com'
+EMAIL_HOST_PASSWORD = 'Lin5535960'
+EMAIL_USE_SSL = True

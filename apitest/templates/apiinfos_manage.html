@@ -196,7 +196,7 @@
             </div>
             <div id="add_new_apiinfo" class="panel-collapse collapse">
                 <div class="panel-body">
-                    <form action="{% url 'addapiinfo' %}?apis_id={{ apis.pk }}" class="form-horizontal" role="form" method="POST">
+                    <form id="add_form" action="{% url 'addapiinfo' %}?apis_id={{ apis.pk }}" class="form-horizontal" role="form" method="POST">
                         {% csrf_token %}
                         <div class="form-group">
                             <div class="col-sm-5">
@@ -254,6 +254,7 @@
                         <div class="form-group">
                             <div class="col-sm-1 col-sm-offset-1">
                                 <button type="submit" class="btn btn-primary modify">添加</button>
+                                <button type="reset" class="btn btn-primary modify">清除</button>
                             </div>
                         </div>
                     </form>
@@ -274,7 +275,9 @@
             <div id="container" class="col-sm-6 col-sm-offset-3" style="height: 300px;"></div>
     </div>
 </div>
+{% endblock %}
     <!-- 引入 highcharts.js -->
+{% block script %}
     <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script>
         // 图表配置
@@ -340,13 +343,6 @@
         //HTML加载完运行的函数,ajax请求测试
         $(function(){
             // 格式化API参数，并显示
-            // var htmlparams=$('[name=apiparamvalue]')
-            // htmlparams.each(function(){
-            //     alert($(this).val())
-            //     if ($(this).val()!="None"){
-            //         $(this).text(JSON.stringify($(this).val(),null,4))          
-            //         }
-            //     })
             $("button.test").click(function(){
                 var method,url,param,bodytype,apijson,except,result,response
                 alert("开始测试")
@@ -432,6 +428,21 @@
                         response.text("4004 error")
                     }
                 })
+            })
+            $("#add_form备注着，后续要用删除中文即可").submit(function(){
+                alert("测试ajax");
+                $.ajax({
+                    url:"{% url 'addapiinfo' %}",
+                    type:"POST",
+                    data:$(this).serialize(),
+                    success:function(data){
+                        console.log(data)
+                    },
+                    error:function(xhr){
+                        console.log(xhr)
+                    }
+                });
+                return false;
             })
         })
     </script>

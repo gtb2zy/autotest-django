@@ -58,10 +58,10 @@ class Apiinfo(models.Model):
     apiurl = models.CharField('url地址', max_length=200, null=True)
     # 请求参数和值param
     apiparamvalue = models.TextField(
-        '请求参数param', max_length=800, null=True, blank='None')
+        '请求参数param', max_length=800, null=True, blank=True)
     # 请求数据JSON
     apijson = models.TextField(
-        '请求数据json', max_length=800, null=True, blank='None')
+        '请求数据json', max_length=800, null=True, blank=True)
     # 响应数据
     apiresponse = models.TextField(
         '响应数据json',

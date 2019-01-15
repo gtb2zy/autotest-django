@@ -77,8 +77,8 @@
     </nav>
     <!--主要内容-->
     <div class="container" style="padding-top: 70px">
-        <div class="row" style="font-size: 14px; text-align: center">
-            <div class="col-md-12">
+        <div class="row" style="text-align: center">
+            <div class="col-xs-12">
                 <table class="table table-hover table-bordered">
                     <thead style="text-align: center">
                         {% block thead %}
@@ -107,6 +107,9 @@
         </div>
     </div>
     {% block else %}
+    {% endblock %}
+    {# 主要写JS代码 #}
+    {% block script %}
     {% endblock %}
 </body>
 </html>

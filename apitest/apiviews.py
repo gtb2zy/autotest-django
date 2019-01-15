@@ -3,7 +3,7 @@ from apitest.models import Apis, Apiinfo
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from apitest.tests import get_record, login
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect  # JsonResponse
 from .forms import ApisForm, ApiinfoForm
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
@@ -110,9 +110,11 @@ def add(request):
 # 添加API内容信息
 @login_required
 def add_apiinfo(request):
-    apis_id = request.GET.get('apis_id')
+    # json对象字典
+    data = {}
     if request.POST:
         apiinfo_form = ApiinfoForm(request.POST)
+        apis_id = request.POST.get('api')
         apiname = request.POST.get('apiname')
         if Apiinfo.objects.filter(apiname=apiname).exists():
             print('api名字已存在')
@@ -120,12 +122,18 @@ def add_apiinfo(request):
             if apiinfo_form.is_valid():
                 apiinfo_form.save()
                 print('apiinfo保存')
+                apiinfo_model = Apiinfo.objects.get(
+                    apiname=apiname, api_id=apis_id)
+                data = model_to_dict(apiinfo_model)
+                data['status'] = 'SUCCESS'
 
             else:
                 print(apiinfo_form.errors)
+                data['status'] = 'ERROR'
 
         return HttpResponseRedirect(
             '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+        # return JsonResponse(data)
 
 
 # 删除API模块
