@@ -24,7 +24,10 @@ SECRET_KEY = 'mb=o8xg5p^q0u2$@-n-7_=a4&3mu1j(-5@!bik7tahk$s_rl=j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    '47.106.111.62'
+    ]
 
 LOGIN_URL = '/user/login/'
 
@@ -37,15 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
     'user',
-    'apitest',
     'product',
-    'bootstrap4',
-    'bug',
-    'sets',
+    'apitest',
     'apptest',
     'webtest',
-    'django_crontab',
+    'bug',
+    'sets',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +83,7 @@ WSGI_APPLICATION = 'autotest.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+# 本地MYSQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -91,6 +94,19 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+
+
+# 阿里云服务器MYSQL
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'autotest',
+#         'USER': 'leo',
+#         'PASSWORD': '123',
+#         'HOST': '47.106.111.62',
+#         'PORT': '3306',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -135,6 +151,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+# 静态文件地址
 STATIC_URL = '/static/'
 HERE = os.path.dirname(os.path.abspath(__file__))
 HERE = os.path.join(HERE, '../')
@@ -147,7 +164,7 @@ CRONJOBS = [
      '>>' + os.path.join(BASE_DIR, 'cronlog/crons.log'))
 ]
 
-# 数据库缓存设置
+# 数据库缓存设置（暂时未用到）
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',

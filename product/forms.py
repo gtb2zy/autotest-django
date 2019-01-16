@@ -9,6 +9,7 @@ class ProductForm(forms.ModelForm):
             'productname',
             'productdesc',
             'producter',
+            # 'level',
         )
         widgets = {
             'productname':
@@ -26,11 +27,16 @@ class ProductForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '请输入产品负责人'
             }),
+            # 'level':
+            # forms.widgets.NumberInput(attrs={
+            #     'class': 'form-control',
+            #     'placeholder': '请输入产品级别,用于排序'
+            # }),
         }
 
-    def clean_productname(self):
-        # 检查产品名是否已存在
-        productname = self.cleaned_data['productname']
-        if Product.objects.filter(productname=productname).exists():
-            raise forms.ValidationError('产品名已存在')
-        return productname
+    # def clean_productname(self):
+    #     # 检查产品名是否已存在
+    #     productname = self.cleaned_data['productname']
+    #     if Product.objects.filter(productname=productname).exists():
+    #         raise forms.ValidationError('产品名已存在')
+    #     return productname

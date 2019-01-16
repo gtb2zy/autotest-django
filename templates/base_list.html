@@ -20,7 +20,7 @@
                     <i class="glyphicon glyphicon-home"></i>&nbsp;&nbsp;&nbsp;自动化测试平台
                     <span class="caret"></span>
                 </a>
-                <ul class="nav navbar-nav dropdown-menu">
+                <ul class="nav dropdown-menu">
                     <li>
                         <a href="{% url 'product_manage' %}">
                         <i class="glyphicon glyphicon-gift"></i>产品中心
@@ -32,22 +32,22 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/periodic_task">
+                        <a href="{% url 'welcome' %}">
                             <i class="glyphicon glyphicon-fire"></i>定时任务
                         </a>
                     </li>
                     <li>
-                        <a href="/bug_manage">
+                        <a href="{% url 'welcome' %}">
                             <i class="glyphicon glyphicon-eye-open"></i>BUG管理
                         </a>
                     </li>
                     <li>
-                        <a href="/test_report">
+                        <a href="{% url 'welcome' %}">
                             <i class="glyphicon glyphicon-calendar"></i>测试报告
                         </a>
                     </li>
                     <li>
-                        <a href="/sets_manage">
+                        <a href="{% url 'welcome' %}">
                             <i class="glyphicon glyphicon-cog"></i>系统设置
                         </a>
                     </li>

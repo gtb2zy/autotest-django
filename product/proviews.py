@@ -3,17 +3,42 @@ from product.models import Product
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ProductForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 
 
 # Create your views here.
+# 产品列表
 @login_required
 def product_manage(request):
     username = request.session.get('user', '')
+    user_ojs = User.objects.all()
     search_productname = request.GET.get('productname', '')
-    product_list = Product.objects.filter(
-        productname__icontains=search_productname)
+    search_productdesc = request.GET.get('productdesc', '')
+    search_producter = request.GET.get('producter', '')
+    # 按产品名搜索
+    if search_productname:
+        product_list = Product.objects.filter(
+            productname__icontains=search_productname)
+
+    # 按产品描述搜索
+    elif search_productdesc:
+        product_list = Product.objects.filter(
+            productdesc__icontains=search_productdesc)
+
+    # 按产品负责人搜索
+    elif search_producter:
+        if User.objects.filter(username=search_producter).exists():
+            user = User.objects.get(username=search_producter)
+            product_list = Product.objects.filter(producter=user)
+        else:
+            product_list = []
+
+    # 显示全部
+    else:
+        product_list = Product.objects.all()
+
     # 生成paginator对象,设置每页显示5条记录
     paginator = Paginator(product_list, 5)
     # 获取当前的页码数,默认为第1页
@@ -46,44 +71,91 @@ def product_manage(request):
         page_range.insert(0, 1)
     if page_range[-1] != page_nums:
         page_range.append(page_nums)
-    
+
     product_form = ProductForm()
     context = {}
     context['user'] = username
+    context['user_ojs'] = user_ojs
     context['products'] = product_list
     context['page_range'] = page_range
     context['product_form'] = product_form
     return render(request, "product_manage.html", context)
 
 
+# 搜索功能
+@login_required
+def search(request):
+    # 查询类型
+    search_type = request.POST.get('search_type', '').strip()
+    # 查询内容
+    search_info = request.POST.get('search_info', '').strip()
+
+    return HttpResponseRedirect(
+        '/product/list?%s=%s' % (search_type, search_info))
+
+
 # 新增产品
 @login_required
 def add(request):
+    data = {}
     if request.POST:
         product_form = ProductForm(request.POST)
         # 必须先判断is_valid()，否则cleaned_data不存在
         if product_form.is_valid():
-            product_form.cleaned_data['creater'] = request.user
-            product_form.save()
-            return HttpResponseRedirect('/product/list')
+            productname = product_form.cleaned_data['productname']
+            if Product.objects.filter(productname=productname).exists():
+                # 产品名已存在
+                data['status'] = 'ERROR'
+            else:
+                product_form.cleaned_data['creater'] = request.user
+                product_form.save()
+                data['status'] = 'SUCCESS'
 
         else:
             # 产品名已存在
-            print('产品名已存在')
-            return HttpResponseRedirect('/product/list')
+            data['status'] = 'ERROR'
+
+        return JsonResponse(data)
+    else:
+        pass
 
 
-# 搜索功能
+# 修改产品
 @login_required
-def search(request):
-    productname = request.GET.get('productname', '')
-    return HttpResponseRedirect('/product/list?productname=%s' % (productname))
+def modify(request):
+    pk = request.GET.get('pk', '')
+    # 获取对比对象
+    product = Product.objects.get(pk=pk)
+    # 模型转为字典，后续比较数据
+    data = model_to_dict(product)
+    # 注意 instance=product因为是用ProductForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
+    product_form = ProductForm(request.POST, initial=data, instance=product)
+    # 因为表单中含有csrf_token数据，所以肯定会有数据变化
+    if product_form.has_changed:
+        if len(product_form.changed_data):
+            for field in product_form.changed_data:
+                print(field + '已被修改')
+            if product_form.is_valid():
+                product_form.save()
+                print('修改成功')
+        else:
+            print('没有变化，不保存')
+    else:
+        print('没有变化，不保存')
+
+    return HttpResponseRedirect('/product/list/')
 
 
 # 删除产品
+@login_required
 def delete(request):
+    data = {}
+    # 判断是否是超级管理员
     if request.user == User.objects.all()[0]:
         pk = request.GET.get('pk', '')
-        product = Product.objects.filter(pk=pk)
+        product = Product.objects.get(pk=pk)
+        data['status'] = 'SUCCESS'
         product.delete()
-    return HttpResponseRedirect('/product/list')
+    else:
+        data['status'] = 'ERROR'
+    return JsonResponse(data)

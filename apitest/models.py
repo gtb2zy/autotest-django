@@ -10,7 +10,7 @@ class Apis(models.Model):
     apiurl = models.CharField('url地址', max_length=200)  # 地址
     # apitester = models.CharField('测试负责人', max_length=16, null=True)  # 执行人
     apitester = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, verbose_name='测试负责人')  # 关联用户
+        User, on_delete=models.CASCADE, verbose_name='测试负责人')  # 关联用户
     apistatus = models.BooleanField('是否通过', default=True)  # 测试结果
     create_time = models.DateTimeField(
         '创建时间', auto_now_add=True)  # 创建时间-自动获取当前时间
@@ -34,7 +34,7 @@ class Apiinfo(models.Model):
         null=True,
     )
     # 接口标题
-    apiname = models.CharField('接口名称', max_length=100, null=True)
+    apiname = models.CharField('接口名称', max_length=100)
     # body类型
     BODY_TYPE = (
         ('application/json;charset=utf-8', 'application/json;charset=utf-8'),
@@ -43,8 +43,7 @@ class Apiinfo(models.Model):
         verbose_name='body类型',
         choices=BODY_TYPE,
         default='json',
-        max_length=200,
-        null=True)
+        max_length=200)
     # 请求方法
     REQUEST_METHOD = (('get', 'get'), ('post', 'post'), ('put', 'put'),
                       ('delete', 'delete'), ('patch', 'patch'))
@@ -52,10 +51,9 @@ class Apiinfo(models.Model):
         verbose_name='请求方法',
         choices=REQUEST_METHOD,
         default='get',
-        max_length=200,
-        null=True)
+        max_length=200)
     # 地址
-    apiurl = models.CharField('url地址', max_length=200, null=True)
+    apiurl = models.CharField('url地址', max_length=200)
     # 请求参数和值param
     apiparamvalue = models.TextField(
         '请求参数param', max_length=800, null=True, blank=True)
@@ -65,8 +63,7 @@ class Apiinfo(models.Model):
     # 响应数据
     apiresponse = models.TextField(
         '响应数据json',
-        max_length=5000,
-        null=True,
+        max_length=5000
     )
     # 测试结果
     apistatus = models.BooleanField('是否通过', default=True)

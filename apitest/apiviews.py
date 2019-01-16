@@ -3,10 +3,11 @@ from apitest.models import Apis, Apiinfo
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from apitest.tests import get_record, login
-from django.http import HttpResponseRedirect  # JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from .forms import ApisForm, ApiinfoForm
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
+from product.models import Product
 
 
 # Create your views here.
@@ -51,11 +52,89 @@ def apis_manage(request):
         page_range.append(page_nums)
     apis_form = ApisForm()
     context = {}
+    context['product_id'] = product_id
+    context['product_ojs'] = Product.objects.all()
     context['user'] = username
+    context['user_ojs'] = User.objects.all()
     context['apiss'] = apis_list
     context['page_range'] = page_range
     context['apis_form'] = apis_form
     return render(request, "apis_manage.html", context)  # 把值赋给apiscounts这个变量
+
+
+# 搜索功能
+@login_required
+def apissearch(request):
+    apiname = request.GET.get('apiname', '').strip()
+    return HttpResponseRedirect('/apitest/apis_manage/?apiname=%s' % (apiname))
+
+
+# 修改API
+@login_required
+def modify_apis(request):
+    pk = request.GET.get('pk', '')
+    product_id = request.GET.get('product_id', '')
+    # 获取对比对象
+    apis = Apis.objects.get(pk=pk)
+    # 模型转为字典，后续比较数据
+    data = model_to_dict(apis)
+    # 注意 instance=apis因为是用ApisForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
+    apis_form = ApisForm(request.POST, initial=data, instance=apis)
+    # 因为表单中含有csrf_token数据，所以肯定会有数据变化
+    if apis_form.has_changed:
+        if len(apis_form.changed_data):
+            for field in apis_form.changed_data:
+                print(field + '已被修改')
+            if apis_form.is_valid():
+                apis_form.save()
+                print('修改成功')
+        else:
+            print('没有变化，不保存')
+    else:
+        print('没有变化，不保存')
+
+    return HttpResponseRedirect('/apitest/apis_manage/?product_id=%s' % (product_id))
+
+
+# 添加API模块
+@login_required
+def add(request):
+    data = {}
+    if request.POST:
+        apis_form = ApisForm(request.POST)
+        # 必须先判断is_valid()，否则cleaned_data不存在
+        if apis_form.is_valid():
+            apiname = apis_form.cleaned_data['apiname']
+            if Apis.objects.filter(apiname=apiname).exists():
+                # API已存在
+                data['status'] = 'ERROR'
+            else:
+                apis_form.cleaned_data['creater'] = request.user
+                apis_form.save()
+                data['status'] = 'SUCCESS'
+
+        else:
+            # API已存在
+            data['status'] = 'ERROR'
+        return JsonResponse(data)
+    else:
+        pass
+
+
+# 删除API模块
+@login_required
+def delete(request):
+    data = {}
+    # 判断是不是超级管理员
+    if request.user == User.objects.all()[0]:
+        pk = request.GET.get('pk', '')
+        apis = Apis.objects.filter(pk=pk)
+        apis.delete()
+        data['status'] = 'SUCCESS'
+
+    else:
+        data['status'] = 'ERROR'
+    return JsonResponse(data)
 
 
 # API具体内容
@@ -81,30 +160,6 @@ def apiinfos_manage(request):
     context['response'] = response
     context['apiinfo_form'] = ApiinfoForm()
     return render(request, 'apiinfos_manage.html', context)
-
-
-# 搜索功能
-@login_required
-def apissearch(request):
-    apiname = request.GET.get('apiname', '')
-    return HttpResponseRedirect('/apitest/apis_manage/?apiname=%s' % (apiname))
-
-
-# 添加API模块
-@login_required
-def add(request):
-    if request.POST:
-        apis_form = ApisForm(request.POST)
-        # 必须先判断is_valid()，否则cleaned_data不存在
-        if apis_form.is_valid():
-            apis_form.cleaned_data['creater'] = request.user
-            apis_form.save()
-            return HttpResponseRedirect('/apitest/apis_manage/')
-
-        else:
-            # API已存在
-            print('API已存在')
-            return HttpResponseRedirect('/apitest/apis_manage/')
 
 
 # 添加API内容信息
@@ -136,17 +191,6 @@ def add_apiinfo(request):
         # return JsonResponse(data)
 
 
-# 删除API模块
-@login_required
-def delete(request):
-    print('删除')
-    if request.user == User.objects.all()[0]:
-        pk = request.GET.get('pk', '')
-        apis = Apis.objects.filter(pk=pk)
-        apis.delete()
-    return HttpResponseRedirect('/apitest/apis_manage/')
-
-
 # 删除API内容信息
 @login_required
 def delete_info(request):
@@ -172,6 +216,7 @@ def modify_apiinfo(request):
     print(data)
     # 注意 instance=apiinfo因为是用ModelForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
     apiinfo_form = ApiinfoForm(request.POST, initial=data, instance=apiinfo)
+    # 因为表单中含有csrf_token数据，所以肯定会有数据变化
     if apiinfo_form.has_changed:
         if len(apiinfo_form.changed_data):
             for field in apiinfo_form.changed_data:

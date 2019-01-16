@@ -6,14 +6,18 @@ from django.utils import timezone
 from .models import LoginRecord
 from django.contrib.auth.models import User
 # from django.core.mail import send_mail
+# from django.core.cache import cache
 from django.core.mail import EmailMessage
 import datetime
 import string
 import random
 
-# from django.core.cache import cache
-
 # Create your views here.
+
+
+# 欢迎界面（提示功能未完成）
+def welcome(request):
+    return render(request, 'welcome.html')
 
 
 # 用户登陆
@@ -56,7 +60,8 @@ def login(request):
                 code = request.POST.get('code', '')
                 # 验证码一致，登陆
                 if request.session.get(username_email, '') == code:
-                    return render(request, 'login.html', {'error': '验证码一致,但是功能未完成'})
+                    return render(request, 'login.html',
+                                  {'error': '验证码一致,但是功能未完成'})
                 else:
                     return render(request, 'login.html', {'error': '验证码错误'})
             # 邮箱不存在
@@ -204,7 +209,6 @@ def change_psw(request):
 
             else:
                 user.set_password(password)
-                print(password)
                 user.save()
 
         except Exception as e:

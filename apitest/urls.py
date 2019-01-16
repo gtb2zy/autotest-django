@@ -9,5 +9,6 @@ urlpatterns = [
     path('delete/', apiviews.delete, name='deleteapis'),
     path('modifyinfo', apiviews.modify_apiinfo, name='modifyapi'),
     path('delete_info/', apiviews.delete_info, name='deleteapiinfo'),
-    path('add_apiinf/', apiviews.add_apiinfo, name='addapiinfo')
+    path('add_apiinf/', apiviews.add_apiinfo, name='addapiinfo'),
+    path('modify_apis/', apiviews.modify_apis, name='apis_modify'),
 ]

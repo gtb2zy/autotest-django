@@ -35,12 +35,12 @@ class ApisForm(forms.ModelForm):
             }),
         }
 
-    def clean_apiname(self):
-        # 检查API是否已存在
-        apiname = self.cleaned_data['apiname']
-        if Apis.objects.filter(apiname=apiname).exists():
-            raise forms.ValidationError('API已存在')
-        return apiname
+    # def clean_apiname(self):
+    #     # 检查API是否已存在
+    #     apiname = self.cleaned_data['apiname']
+    #     if Apis.objects.filter(apiname=apiname).exists():
+    #         raise forms.ValidationError('API已存在')
+    #     return apiname
 
 
 class ApiinfoForm(forms.ModelForm):

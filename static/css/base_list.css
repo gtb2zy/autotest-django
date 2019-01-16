@@ -1,3 +1,15 @@
 th {
     text-align: center;
 }
+
+.modify {
+    border: none;
+    text-align: center;
+}
+
+tr:hover input.modify {
+    background: #f5f5f5;
+}
+tr:hover select.modify {
+    background: #f5f5f5;
+}

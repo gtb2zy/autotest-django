@@ -3,8 +3,8 @@
 {# 导航栏 #}
 {% block navbar %}
     <li class="active"><a href="{% url 'apis_manage' %}">api用例</a></li>
-    <li><a href="{% url 'appcase_manage' %}">app用例</a></li>
-    <li><a href="{% url 'webcase_manage' %}">web用例</a></li>
+    <li><a href="{% url 'welcome' %}">app用例</a></li>
+    <li><a href="{% url 'welcome' %}">web用例</a></li>
 {% endblock %}
 
 {# 搜索和添加功能 #}
@@ -29,6 +29,7 @@
         <th>产品</th>
         <th>后端模块</th>
         <th>URL地址</th>
+        <th>负责人</th>
         <th>测试结果</th>
         <th>创建时间</th>
         <th>修改时间</th>
@@ -40,73 +41,76 @@
 {# 表格主体 #}
 {% block tbody %}
     {% for apis in apiss %}
-    <tr>
-        <td>{{ apis.Product.productname }}</td>
-        <td><a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
-            {{ apis.apiname }}
-            </a>
-        </td>
-        <td>{{ apis.apiurl }}</td>
-        <td>{% if apis.apistatus == 1 %}
-                <a style='color:green'>{{ apis.apistatus }}</a> 
-                {% else %}
-                <a style='color:red'>{{ apis.apistatus }}</a> 
-                {% endif %}
-        </td>
-        <td>{{ apis.create_time }}</td>
-        <td>{{ apis.update_time }}</td>
-        <td>
-            <a data-toggle="modal" href="#{{ apis.id }}_modify">
-            <img src="/static/admin/img/icon-changelink.svg"/>
-            </a>
-        </td>
-        <!-- 修改-模态框（Modal） form放在tr有BUG，显示异常-->
-        <div class="modal fade" id="{{ apis.id }}_modify" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
+    <form action="{% url 'apis_modify' %}?pk={{ apis.pk }}&product_id={{ apis.Product.pk }}" id="modify_{{ apis.pk }}" method="POST">
+        {% csrf_token %}
+        <tr>
+            <td><select name="Product" class="modify">
+                {% for product_oj in product_ojs %}
+                    <option value="{{ product_oj.pk }}">{{ product_oj.productname }}</option>
+                {% endfor %}
+                    <option value="{{ apis.Product.pk }}" selected>{{ apis.Product.productname }}</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="apiname" value="{{ apis.apiname }}" class="modify">
+                <a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
+                    <i class="glyphicon glyphicon-import"></i>
+                </a>
+            </td>
+            <td><input type="text" name="apiurl" value="{{ apis.apiurl }}" class="modify"></td>
+            <td><select name="apitester" class="modify">
+                {% for user_oj in user_ojs %}
+                    <option value="{{ user_oj.pk }}">{{ user_oj.username }}</option>
+                {% endfor %}
+                    <option value="{{ apis.apitester_id }}" selected>{{ apis.apitester }}</option>
+                </select>
+            </td>
+            <td>{% if apis.apistatus == 1 %}
+                    <a style='color:green'>{{ apis.apistatus }}</a> 
+                    {% else %}
+                    <a style='color:red'>{{ apis.apistatus }}</a> 
+                    {% endif %}
+            </td>
+            <td>{{ apis.create_time }}</td>
+            <td>{{ apis.update_time }}</td>
+            <td>
+                <a href="#" onclick="document:modify_{{ apis.pk }}.submit();">
+                <img src="/static/admin/img/icon-changelink.svg"/>
+                </a>
+            </td>
+            <td><a data-toggle="modal" href="#{{ apis.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
+            <!-- 删除-模态框（Modal） -->
+            <div class="modal fade" id="{{ apis.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h4 class="modal-title text-danger" id="myModalLabel">是否修改？</h4>
+                            <h4 class="modal-title text-info" id="myModalLabel">是否删除模块？</h4>
                         </div>
-                        <div class="modal-body" class="navbar-form">
-                                <h4 class="text-info">功能未完成，后续开发</h4>
-                        </div>
+                        <div class="modal-body"><h4 class="text-danger">{{ apis.apiname }}</h4>
+                        <span id="delete_error">&nbsp;</span></div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                            <button type="submit" class="btn btn-primary">确定</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-danger" onclick="delete_api({{ apis.id }})">确定</button>
                         </div>
-                    </div>
-            </div>
-        </div>
-        <td><a data-toggle="modal" href="#{{ apis.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
-        <!-- 删除-模态框（Modal） -->
-        <div class="modal fade" id="{{ apis.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title text-danger" id="myModalLabel">是否删除？</h4>
-                    </div>
-                    <div class="modal-body"><h4 class="text-info">{{ apis.apiname }}</h4></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>      
-                        <a href="{% url 'deleteapis' %}?pk={{ apis.pk }}">
-                            <button type="button" class="btn btn-primary">确定</button>
-                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    <tr />
+        </tr>
+    </form>
     {% empty %}
     <tr>
-        <td colspan="111">暂无API&nbsp;&nbsp;&nbsp;&nbsp;
+        <td colspan="111">暂无API
+        </td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="111">
             <a style='color:light blue'  href="{% url 'product_manage' %}" >
                 <img src="/static/admin/img/icon-yes.svg" alt="产品中心"/>产品中心
             </a>
         </td>
     </tr>
-    {% endfor %}
 {% endblock %}
 
 {# 显示数量 #}
@@ -145,13 +149,13 @@
 {% block else %}
 <!-- 添加API 模态框（Modal） -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title text-info" id="myModalLabel">新增API模块</h4>
+                <h4 class="modal-title text-info" id="myModalLabel">新增API模块&nbsp;&nbsp;<span id="add_error"></span></h4>
             </div>
-            <form action="{% url 'addapis' %}" method="POST">
+            <form id="add_api" action="{% url 'addapis' %}" method="POST">
                 {% csrf_token %}
                 <div class="modal-body" class="navbar-form">
                         {{ apis_form }}
@@ -164,4 +168,50 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block script %}
+    <script>
+        // 删除产品，需要管理员权限
+        function delete_api(apis_pk){
+            url = "{% url 'deleteapis' %}?pk="+apis_pk
+            $.ajax({
+                url:url,
+                type:"GET",
+                success:function(data){
+                    if (data['status'] == 'SUCCESS'){
+                        // $('#delete_error').text('删除成功');
+                        // $('#delete_error').css({"color":"blue"});
+                        // 刷新网页
+                        window.location.reload()
+                    }
+                    else{
+                        $('#delete_error').text('删除失败，没有权限');
+                        $('#delete_error').css({"color":"red"});
+                    }
+                },
+            })
+        }
+        // 添加产品 add_product 是form的ID
+        $("#add_api").submit(function(){
+            $.ajax({
+                url:"{% url 'addapis' %}",
+                type:"POST",
+                data:$(this).serialize(),
+                success:function(data){
+                    if (data['status'] == 'SUCCESS'){
+                        // $("#add_error").text("添加成功");
+                        // $("#add_error").css({"color": "blue"});
+                        // 刷新网页
+                        window.location.reload()
+                    }
+                    else {
+                        $("#add_error").text('添加失败，产品名已存在');
+                        $("#add_error").css({"color": "red"});
+                        alert('添加失败，产品名已存在')
+                    }
+                }
+            });
+            return false;
+        })
+    </script>
 {% endblock %}
