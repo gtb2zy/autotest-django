@@ -59,7 +59,8 @@ def login(request):
             if User.objects.filter(email=username_email).exists():
                 code = request.POST.get('code', '')
                 # 验证码一致，登陆
-                if request.session.get(username_email, '') == code:
+                key = username_email.split('@')[0] + email.split('@')[1]
+                if request.COOKIES.get(key, '') == code:
                     return render(request, 'login.html',
                                   {'error': '验证码一致,但是功能未完成'})
                 else:
@@ -90,7 +91,7 @@ def home(request):
     context['login_num'] = login_num
     context['login_times'] = login_times
     response = render(request, 'home.html', context)
-    response.set_cookie('test_apis', 'true', max_age=600)
+    # response.set_cookie('test_apis', 'true', max_age=600)
     return response
 
 
@@ -107,9 +108,14 @@ def get_code(request):
     data = {}
     # 验证邮箱
     email = request.GET.get('email', '')
+    key = email.split('@')[0] + email.split('@')[1]
     # 判断验证码是否已经存在session中
-    if request.session.get(email, ''):
+    # if request.session.get(email, ''):
+    #     data['status'] = '验证码已发送，请稍后再获取'
+    # 判断验证码是否已经存在cookie中
+    if request.COOKIES.get(key, ''):
         data['status'] = '验证码已发送，请稍后再获取'
+        json = JsonResponse(data)
 
     else:
         # 获取4位随机数（小写字母+数字）
@@ -136,12 +142,15 @@ def get_code(request):
             msg.content_subtype = 'html'
             msg.send()
             data['status'] = 'SUCCESS'
-            request.session[email] = code
+            json = JsonResponse(data)
+            json.set_cookie(key, code, max_age=300)
+            # request.session[email] = code
         except Exception as e:
             print(e)
             data['status'] = '发送失败'
+            json = JsonResponse(data)
 
-    return JsonResponse(data)
+    return json
 
 
 # 注册
@@ -160,7 +169,8 @@ def register(request):
 
             # 验证验证码
             code = request.POST.get('code', '').lower()
-            if request.session.get(email, '') != code:
+            key = email.split('@')[0] + email.split('@')[1]
+            if request.COOKIES.get(key, '') != code:
                 raise Exception('验证码错误')
 
             # 验证输入密码
@@ -198,7 +208,8 @@ def change_psw(request):
 
             # 验证验证码
             code = request.POST.get('code', '').lower()
-            if request.session.get(email, '') != code:
+            key = email.split('@')[0] + email.split('@')[1]
+            if request.COOKIES.get(key, '') != code:
                 raise Exception('验证码错误')
 
             # 验证输入密码

@@ -2,17 +2,17 @@
 import requests
 import time
 import json
-import logging
+# import logging
 from apitest.models import Apis, Apiinfo
 from user.models import TestRecord
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 import datetime
 
-logging.basicConfig(
-    level=logging.DEBUG, format='%(asctime)s-%(levelname)s-%(message)s')
-if 1:
-    logging.disable(logging.DEBUG)
+# logging.basicConfig(
+#     level=logging.DEBUG, format='%(asctime)s-%(levelname)s-%(message)s')
+# if 1:
+#     logging.disable(logging.DEBUG)
 
 # 登陆信息
 loginApi = {
@@ -62,23 +62,28 @@ def login():
 
     finally:
         if error != 'PASS':
-            return False
+            print(error)
+            return error
     # 计算测试时间，精确到小数点后两位
     timeval = time.time() - start
     timeval = str(round(timeval, 2))
-    logging.debug('RESPONSE：' + r.text)
-    rev = json.loads(r.text)
-    if 'data' in rev:
-        if 'token' in rev['data']:
-            global TOKEN
-            TOKEN = rev['data']['token']
-    if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
-            'response']['errmsg']:
-        logging.info(error + '-' + api['name'] + ' 测试时间：' + timeval)
-    else:
-        error = 'FAIL-RESPONSE 不一致'
-        logging.info(error + '-' + api['name'] + '-测试时间：' + timeval)
-    return r.text
+    print('RESPONSE：' + r.text)
+    try:
+        rev = json.loads(r.text)
+        if 'data' in rev:
+            if 'token' in rev['data']:
+                global TOKEN
+                TOKEN = rev['data']['token']
+        if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
+                'response']['errmsg']:
+            print(error + '-' + api['name'] + ' 测试时间：' + timeval)
+        else:
+            error = 'FAIL-RESPONSE 不一致'
+            print(error + '-' + api['name'] + '-测试时间：' + timeval)
+        return r.text
+    except Exception as e:
+        print(e)
+        return e
 
 
 # 添加一次测试记录
@@ -146,7 +151,7 @@ def test_apis():
             else:
                 apitest['json'] = apiinfo.apijson
             apitest['response'] = json.loads(apiinfo.apiresponse)
-            logging.debug(apitest)
+            print(apitest)
             # url请求测试
             result = api_request(apitest)
             apiinfo.apistatus = result
@@ -189,17 +194,20 @@ def api_request(api):
     # 计算测试时间，精确到小数点后两位
     timeval = time.time() - start
     timeval = str(round(timeval, 2))
-    logging.debug('RESPONSE：' + r.text)
-    rev = json.loads(r.text)
-    if 'data' in rev:
-        if 'token' in rev['data']:
-            global TOKEN
-            TOKEN = rev['data']['token']
-    if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
-            'response']['errmsg']:
-        logging.info(error + '-' + api['name'] + ' 测试时间：' + timeval)
-        return True
-    else:
-        error = 'FAIL-RESPONSE 不一致'
-        logging.info(error + '-' + api['name'] + '-测试时间：' + timeval)
+    print('RESPONSE：' + r.text)
+    try:
+        rev = json.loads(r.text)
+        if 'data' in rev:
+            if 'token' in rev['data']:
+                global TOKEN
+                TOKEN = rev['data']['token']
+        if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
+                'response']['errmsg']:
+            print(error + '-' + api['name'] + ' 测试时间：' + timeval)
+            return True
+        else:
+            error = 'FAIL-RESPONSE 不一致'
+            print(error + '-' + api['name'] + '-测试时间：' + timeval)
+            return False
+    except Exception:
         return False

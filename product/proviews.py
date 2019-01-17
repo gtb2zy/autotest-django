@@ -5,7 +5,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ProductForm
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.models import User
-from django.forms.models import model_to_dict
+# from django.forms.models import model_to_dict
 
 
 # Create your views here.
@@ -40,7 +40,7 @@ def product_manage(request):
         product_list = Product.objects.all()
 
     # 生成paginator对象,设置每页显示5条记录
-    paginator = Paginator(product_list, 5)
+    paginator = Paginator(product_list, 8)
     # 获取当前的页码数,默认为第1页
     page = request.GET.get('page', 1)
     # 把获取的当前页码数转换成整数类型
@@ -123,27 +123,43 @@ def add(request):
 # 修改产品
 @login_required
 def modify(request):
+    data = {}
     pk = request.GET.get('pk', '')
     # 获取对比对象
     product = Product.objects.get(pk=pk)
     # 模型转为字典，后续比较数据
-    data = model_to_dict(product)
+    # data = model_to_dict(product)
     # 注意 instance=product因为是用ProductForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
-    product_form = ProductForm(request.POST, initial=data, instance=product)
+    # product_form = ProductForm(request.POST, initial=data, instance=product)
+    product_form = ProductForm(request.POST, instance=product)
     # 因为表单中含有csrf_token数据，所以肯定会有数据变化
     if product_form.has_changed:
         if len(product_form.changed_data):
             for field in product_form.changed_data:
                 print(field + '已被修改')
+                if field == 'productname':
+                    productname = request.POST.get('productname', '')
+                    if Product.objects.filter(
+                            productname=productname).exists():
+                        data['status'] = 'ERROR'
+                        data['info'] = '产品名已存在'
+                        return JsonResponse(data)
+                        # return HttpResponseRedirect('/product/list/')
+
             if product_form.is_valid():
                 product_form.save()
-                print('修改成功')
+                data['status'] = 'SUCCESS'
+                return JsonResponse(data)
         else:
-            print('没有变化，不保存')
+            data['status'] = 'ERROR'
+            data['info'] = '没有变化，请修改后保存'
+            return JsonResponse(data)
     else:
-        print('没有变化，不保存')
+        data['status'] = 'ERROR'
+        data['info'] = '没有变化，请修改后保存'
+        return JsonResponse(data)
 
-    return HttpResponseRedirect('/product/list/')
+    # return HttpResponseRedirect('/product/list/')
 
 
 # 删除产品

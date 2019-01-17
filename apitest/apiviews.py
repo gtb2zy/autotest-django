@@ -6,22 +6,34 @@ from apitest.tests import get_record, login
 from django.http import HttpResponseRedirect, JsonResponse
 from .forms import ApisForm, ApiinfoForm
 from django.contrib.auth.models import User
-from django.forms.models import model_to_dict
+# from django.forms.models import model_to_dict
 from product.models import Product
-
+from .tests import test_apis
 
 # Create your views here.
+
+
+# test
+def test(request):
+    test_apis()
+    return JsonResponse({})
+
+
 # API测试用例
 @login_required
 def apis_manage(request):
     product_id = request.GET.get('product_id', '')
     apiname = request.GET.get('apiname', '')
+    productname = request.GET.get('productname', '')
     if product_id:
         apis_list = Apis.objects.filter(Product_id=product_id)
     elif apiname:
         apis_list = Apis.objects.filter(apiname__icontains=apiname)
+    elif productname:
+        apis_list = Apis.objects.filter(Product__productname__icontains=productname)
     else:
         apis_list = Apis.objects.all()
+        print('all')
     username = request.session.get('user', '')
     paginator = Paginator(apis_list, 8)  # 生成paginator对象,设置每页显示8条记录
     page = request.GET.get('page', 1)  # 获取当前的页码数,默认为第1页
@@ -65,35 +77,57 @@ def apis_manage(request):
 # 搜索功能
 @login_required
 def apissearch(request):
-    apiname = request.GET.get('apiname', '').strip()
-    return HttpResponseRedirect('/apitest/apis_manage/?apiname=%s' % (apiname))
+    search_info = request.GET.get('search_info', '').strip()
+    search_type = request.GET.get('search_type', '').strip()
+    return HttpResponseRedirect(
+        '/apitest/apis_manage/?%s=%s' % (search_type, search_info))
 
 
 # 修改API
 @login_required
 def modify_apis(request):
+    data = {}
     pk = request.GET.get('pk', '')
     product_id = request.GET.get('product_id', '')
     # 获取对比对象
     apis = Apis.objects.get(pk=pk)
     # 模型转为字典，后续比较数据
-    data = model_to_dict(apis)
+    # data = model_to_dict(apis)
     # 注意 instance=apis因为是用ApisForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
-    apis_form = ApisForm(request.POST, initial=data, instance=apis)
+    # apis_form = ApisForm(request.POST, initial=data, instance=apis)
+    apis_form = ApisForm(request.POST, instance=apis)
     # 因为表单中含有csrf_token数据，所以肯定会有数据变化
     if apis_form.has_changed:
         if len(apis_form.changed_data):
             for field in apis_form.changed_data:
                 print(field + '已被修改')
+                # 判断修改后名称是否存在
+                if field == 'apiname':
+                    apiname = request.POST.get('apiname', '')
+                    if Apis.objects.filter(
+                            apiname=apiname, Product_id=product_id).exists():
+                        data['status'] = 'ERROR'
+                        data['info'] = 'API名称已存在'
+                        return JsonResponse(data)
+                        # return HttpResponseRedirect(
+                        #     '/apitest/apis_manage/?product_id=%s' %
+                        #     (product_id))
+
             if apis_form.is_valid():
                 apis_form.save()
-                print('修改成功')
+                data['status'] = 'SUCCESS'
+                return JsonResponse(data)
         else:
-            print('没有变化，不保存')
+            data['status'] = 'ERROR'
+            data['info'] = '数据没有变化'
+            return JsonResponse(data)
     else:
-        print('没有变化，不保存')
+        data['status'] = 'ERROR'
+        data['info'] = '数据没有变化'
+        return JsonResponse(data)
 
-    return HttpResponseRedirect('/apitest/apis_manage/?product_id=%s' % (product_id))
+    # return HttpResponseRedirect(
+    #     '/apitest/apis_manage/?product_id=%s' % (product_id))
 
 
 # 添加API模块
@@ -105,7 +139,9 @@ def add(request):
         # 必须先判断is_valid()，否则cleaned_data不存在
         if apis_form.is_valid():
             apiname = apis_form.cleaned_data['apiname']
-            if Apis.objects.filter(apiname=apiname).exists():
+            product_id = apis_form.cleaned_data['Product']
+            if Apis.objects.filter(
+                    apiname=apiname, Product_id=product_id).exists():
                 # API已存在
                 data['status'] = 'ERROR'
             else:
@@ -171,65 +207,77 @@ def add_apiinfo(request):
         apiinfo_form = ApiinfoForm(request.POST)
         apis_id = request.POST.get('api')
         apiname = request.POST.get('apiname')
-        if Apiinfo.objects.filter(apiname=apiname).exists():
-            print('api名字已存在')
+        if Apiinfo.objects.filter(apiname=apiname, api_id=apis_id).exists():
+            data['status'] = 'ERROR'
         else:
             if apiinfo_form.is_valid():
                 apiinfo_form.save()
-                print('apiinfo保存')
-                apiinfo_model = Apiinfo.objects.get(
-                    apiname=apiname, api_id=apis_id)
-                data = model_to_dict(apiinfo_model)
                 data['status'] = 'SUCCESS'
 
             else:
                 print(apiinfo_form.errors)
                 data['status'] = 'ERROR'
 
-        return HttpResponseRedirect(
-            '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
-        # return JsonResponse(data)
+        return JsonResponse(data)
 
 
 # 删除API内容信息
 @login_required
 def delete_info(request):
-    print('删除')
-    apis_id = request.GET.get('apis_id')
+    data = {}
     if request.user == User.objects.all()[0]:
         pk = request.GET.get('pk', '')
-        apiinfo = Apiinfo.objects.filter(pk=pk)
+        apiinfo = Apiinfo.objects.get(pk=pk)
+        data['status'] = 'SUCCESS'
         apiinfo.delete()
-    return HttpResponseRedirect(
-        '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+    else:
+        data['status'] = 'ERROR'
+    return JsonResponse(data)
 
 
 # 修改API内容信息
 @login_required
 def modify_apiinfo(request):
+    data = {}
     pk = request.GET.get('pk')
     apis_id = request.GET.get('apis_id')
     apiinfo = Apiinfo.objects.get(pk=pk)
-    data = model_to_dict(apiinfo)
+    # data = model_to_dict(apiinfo)
     # data.pop('id')
     # data.pop('apistatus')
-    print(data)
     # 注意 instance=apiinfo因为是用ModelForm修改 部分字段，这时候需要指定修改的是哪个实例，否则是新建
-    apiinfo_form = ApiinfoForm(request.POST, initial=data, instance=apiinfo)
+    # apiinfo_form = ApiinfoForm(request.POST, initial=data, instance=apiinfo)
+    apiinfo_form = ApiinfoForm(request.POST, instance=apiinfo)
     # 因为表单中含有csrf_token数据，所以肯定会有数据变化
     if apiinfo_form.has_changed:
         if len(apiinfo_form.changed_data):
             for field in apiinfo_form.changed_data:
                 print(field + '已被修改')
+                # 判断修改后名称是否存在
+                if field == 'apiname':
+                    apiname = request.POST.get('apiname', '')
+                    if Apiinfo.objects.filter(
+                            apiname=apiname, api_id=apis_id).exists():
+                        data['status'] = 'ERROR'
+                        data['info'] = 'API接口名称已存在'
+                        return JsonResponse(data)
+                        # return HttpResponseRedirect(
+                        #     '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+
             if apiinfo_form.is_valid():
                 apiinfo_form.cleaned_data['api'] = Apis.objects.get(pk=apis_id)
                 print(apiinfo_form.cleaned_data['api'])
                 apiinfo_form.save()
-                print('修改成功')
+                # 修改成功
+                data['status'] = 'SUCCESS'
+                return JsonResponse(data)
         else:
-            print('没有变化，不保存')
+            data['status'] = 'ERROR'
+            data['info'] = '数据没有变化'
+            return JsonResponse(data)
     else:
-        print('没有变化，不保存')
-
-    return HttpResponseRedirect(
-        '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))
+        data['status'] = 'ERROR'
+        data['info'] = '数据没有变化'
+        return JsonResponse(data)
+    # return HttpResponseRedirect(
+    #     '/apitest/apiinfos_manage/?apis.id=%s' % (apis_id))

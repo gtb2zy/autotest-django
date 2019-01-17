@@ -55,6 +55,7 @@ class ApiinfoForm(forms.ModelForm):
             'apiparamvalue',
             'apijson',
             'apiresponse',
+            'level',
         }
 
 #     def clean_apiname(self):

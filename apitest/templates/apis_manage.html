@@ -12,7 +12,11 @@
     <li>
         <form class="navbar-form" action="{% url 'apissearch' %}" method="GET" role="search">
                 <div class="form-group">
-                    <input type="search" name="apiname" class="form-control" placeholder="后端模块" required>
+                    <input type="search" name="search_info" class="form-control" placeholder="搜索内容" required>
+                    <select name="search_type" class="form-control">
+                        <option value="productname">产品</option>
+                        <option value="apiname">模块</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-default">搜索</button>
                 <button type="button" class="btn btn-default">
@@ -41,7 +45,7 @@
 {# 表格主体 #}
 {% block tbody %}
     {% for apis in apiss %}
-    <form action="{% url 'apis_modify' %}?pk={{ apis.pk }}&product_id={{ apis.Product.pk }}" id="modify_{{ apis.pk }}" method="POST">
+    <form id="{{ apis.pk }}_modify" action="{% url 'apis_modify' %}?pk={{ apis.pk }}&product_id={{ apis.Product.pk }}" method="POST">
         {% csrf_token %}
         <tr>
             <td><select name="Product" class="modify">
@@ -74,9 +78,11 @@
             <td>{{ apis.create_time }}</td>
             <td>{{ apis.update_time }}</td>
             <td>
-                <a href="#" onclick="document:modify_{{ apis.pk }}.submit();">
-                <img src="/static/admin/img/icon-changelink.svg"/>
-                </a>
+                <!-- <a href="javascript:void(0);" onclick="document:modify_{{ apis.pk }}.submit();"> -->
+                <button type="submit" style="border: none; background: #fff">
+                    <img src="/static/admin/img/icon-changelink.svg"/>
+                </button>
+                <!-- </a> -->
             </td>
             <td><a data-toggle="modal" href="#{{ apis.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
             <!-- 删除-模态框（Modal） -->
@@ -87,8 +93,10 @@
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                             <h4 class="modal-title text-info" id="myModalLabel">是否删除模块？</h4>
                         </div>
-                        <div class="modal-body"><h4 class="text-danger">{{ apis.apiname }}</h4>
-                        <span id="delete_error">&nbsp;</span></div>
+                        <div class="modal-body">
+                            <h4 class="text-danger">{{ apis.apiname }}</h4>
+                            <span id="delete_error">&nbsp;</span>
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-danger" onclick="delete_api({{ apis.id }})">确定</button>
@@ -98,6 +106,27 @@
             </div>
         </tr>
     </form>
+    <script>
+        // 修改 {{ apisinfo.id }}_modify 是form的ID
+        $("#{{ apis.pk }}_modify").submit(function(){
+            $.ajax({
+                url:"{% url 'apis_modify' %}?pk={{ apis.pk }}&product_id={{ apis.Product.pk }}",
+                type:"POST",
+                data:$(this).serialize(),
+                success:function(data){
+                    if (data['status'] == 'SUCCESS'){
+                        alert("修改成功");
+                        // 刷新网页
+                        window.location.reload()
+                    }
+                    else {
+                        alert(data['info'])
+                    }
+                }
+            });
+            return false;
+        })
+    </script>
     {% empty %}
     <tr>
         <td colspan="111">暂无API

@@ -51,6 +51,10 @@
                             <i class="glyphicon glyphicon-cog"></i>系统设置
                         </a>
                     </li>
+                    <li>
+                        <a href="javascript:void(0);" onclick="test()">
+                            <i class="glyphicon glyphicon-refresh"></i>TEST</a>
+                    </li>
                 </ul>
                 <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
                     <span class="icon-bar"></span>
@@ -111,5 +115,13 @@
     {# 主要写JS代码 #}
     {% block script %}
     {% endblock %}
+    <script>
+        function test(){
+            $.ajax({
+                url:"{% url 'apitest' %}",
+                type:"GET",
+            })
+        }
+    </script>
 </body>
 </html>

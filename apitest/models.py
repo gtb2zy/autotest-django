@@ -11,6 +11,7 @@ class Apis(models.Model):
     # apitester = models.CharField('测试负责人', max_length=16, null=True)  # 执行人
     apitester = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='测试负责人')  # 关联用户
+    level = models.IntegerField('测试基本', default=-1)
     apistatus = models.BooleanField('是否通过', default=True)  # 测试结果
     create_time = models.DateTimeField(
         '创建时间', auto_now_add=True)  # 创建时间-自动获取当前时间
@@ -65,6 +66,7 @@ class Apiinfo(models.Model):
         '响应数据json',
         max_length=5000
     )
+    level = models.IntegerField('测试基本', default=-1)
     # 测试结果
     apistatus = models.BooleanField('是否通过', default=True)
     # 创建时间-自动获取当前时间
@@ -72,7 +74,7 @@ class Apiinfo(models.Model):
 
     class Meta:
         ordering = [
-            '-create_time',
+            '-level',
         ]
 
     def __str__(self):

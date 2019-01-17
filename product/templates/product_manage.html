@@ -68,9 +68,9 @@
             <td>{{ product.create_time }}</td>
             <!-- <td>{{ product.level }}</td> -->
             <td>
-                <a href="#" onclick="document:modify_{{ product.pk }}.submit();">
-                <img src="/static/admin/img/icon-changelink.svg"/>
-                </a>
+                <button type="submit" style="border: none; background: #fff">
+                    <img src="/static/admin/img/icon-changelink.svg"/>
+                </button>
             </td>
             <td><a data-toggle="modal" href="#{{ product.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
             <!-- 删除-模态框（Modal） -->
@@ -92,6 +92,27 @@
             </div>
         </tr>
     </form>
+    <script>
+        // 修改 {{ apisinfo.id }}_modify 是form的ID
+        $("#modify_{{ product.pk }}").submit(function(){
+            $.ajax({
+                url:"{% url 'pro_modify' %}?pk={{ product.pk }}",
+                type:"POST",
+                data:$(this).serialize(),
+                success:function(data){
+                    if (data['status'] == 'SUCCESS'){
+                        alert("修改成功");
+                        // 刷新网页
+                        window.location.reload()
+                    }
+                    else {
+                        alert(data['info'])
+                    }
+                }
+            });
+            return false;
+        })
+    </script>
     {% empty %}
         <tr>
             <td colspan="111">暂无产品</td>
@@ -109,26 +130,26 @@
     {# 上一页链接开始#}
     {% if products.has_previous %}
         {#  如果有上一页则正常显示上一页链接#}
-        <li><a href="/product/product_manage/?page={{ products.previous_page_number }}">上一页</a></li>    {#  上一页标签 #}
+        <li><a href="{% url 'product_manage' %}?page={{ products.previous_page_number }}">&laquo;</a></li>    {#  上一页标签 #}
     {% else %}
-        <li class="disabled"><a href="#">上一页</a></li> {# 如果当前不存在上一页则上一页的链接不可点击#}
+        <li class="disabled"><a href="#">&laquo;</a></li> {# 如果当前不存在上一页则上一页的链接不可点击#}
     {% endif %}
     {# 上一页链接开始#}
 
     {% for num in page_range %}
 
         {% if num == products.number %}
-            <li class="active"><a href="/product/product_manage/?page={{ num }}">{{ num }}</a></li> {#显示当页数链接#} 
+            <li class="active"><a href="{% url 'product_manage' %}?page={{ num }}">{{ num }}</a></li> {#显示当页数链接#} 
         {% else %}
-            <li><a href="/product/product_manage/?page={{ num }}">{{ num }}</a></li>
+            <li><a href="{% url 'product_manage' %}?page={{ num }}">{{ num }}</a></li>
         {% endif %}
     {% endfor %}
 
     {# 下一页链接开始#}
     {% if products.has_next %} {#  如果有下一页则正常显示下一页链接#}
-        <li><a href="/product/product_manage/?page={{ products.next_page_number }}">下一页</a></li>
+        <li><a href="{% url 'product_manage' %}?page={{ products.next_page_number }}">&raquo;</a></li>
     {% else %}
-        <li class="disabled"><a href="#">下一页</a></li>
+        <li class="disabled"><a href="#">&raquo;</a></li>
     {% endif %}
     {# 下一页链接结束#}
 {% endblock %}
