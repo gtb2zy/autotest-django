@@ -158,10 +158,13 @@ HERE = os.path.join(HERE, '../')
 STATICFILES_DIRS = (os.path.join(HERE, 'static/'), )
 
 # 定时任务最简单配置
+# python manage.py crontab add
+# python manage.py crontab show
+# python manage.py crontab remove
 CRONJOBS = [
     # 表示每天12：00执行
     ('00 12 * * *', 'apitest.tests.test_apis',
-     '>>' + os.path.join(BASE_DIR, 'cronlog/crons.log'))
+     '>>' + os.path.join(BASE_DIR, 'crons.log'))
 ]
 
 # 数据库缓存设置（暂时未用到）

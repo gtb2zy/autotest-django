@@ -12,4 +12,5 @@ urlpatterns = [
     path('add_apiinf/', apiviews.add_apiinfo, name='addapiinfo'),
     path('modify_apis/', apiviews.modify_apis, name='apis_modify'),
     path('test/', apiviews.test, name='apitest'),
+    path('test_login/', apiviews.test_login, name='test_login')
 ]

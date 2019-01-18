@@ -19,6 +19,13 @@ def test(request):
     return JsonResponse({})
 
 
+# 获取测试登陆信息
+def test_login(request):
+    data = {}
+    data['info'] = login()
+    return JsonResponse(data)
+
+
 # API测试用例
 @login_required
 def apis_manage(request):
@@ -30,7 +37,8 @@ def apis_manage(request):
     elif apiname:
         apis_list = Apis.objects.filter(apiname__icontains=apiname)
     elif productname:
-        apis_list = Apis.objects.filter(Product__productname__icontains=productname)
+        apis_list = Apis.objects.filter(
+            Product__productname__icontains=productname)
     else:
         apis_list = Apis.objects.all()
         print('all')
@@ -177,7 +185,7 @@ def delete(request):
 @login_required
 def apiinfos_manage(request):
     # 获取登陆API信息，用于后续测试
-    response = login()
+    # response = login()
 
     user = request.session.get('user', '')
     apisid = request.GET.get('apis.id', None)
@@ -193,7 +201,7 @@ def apiinfos_manage(request):
     context['test_all'] = test_all
     context['test_pass'] = test_pass
     context['test_fail'] = test_fail
-    context['response'] = response
+    # context['response'] = response
     context['apiinfo_form'] = ApiinfoForm()
     return render(request, 'apiinfos_manage.html', context)
 

@@ -47,8 +47,8 @@
     {% for apis in apiss %}
     <form id="{{ apis.pk }}_modify" action="{% url 'apis_modify' %}?pk={{ apis.pk }}&product_id={{ apis.Product.pk }}" method="POST">
         {% csrf_token %}
-        <tr>
-            <td><select name="Product" class="modify">
+        <tr id="{{ apis.pk }}_tr">
+            <td><select name="Product" class="modify" disabled="disabled">
                 {% for product_oj in product_ojs %}
                     <option value="{{ product_oj.pk }}">{{ product_oj.productname }}</option>
                 {% endfor %}
@@ -56,13 +56,13 @@
                 </select>
             </td>
             <td>
-                <input type="text" name="apiname" value="{{ apis.apiname }}" class="modify">
+                <input type="text" name="apiname" value="{{ apis.apiname }}" class="modify" readonly="readonly">
                 <a href="{% url "apiinfos_manage" %}?apis.id={{ apis.id }}">
                     <i class="glyphicon glyphicon-import"></i>
                 </a>
             </td>
-            <td><input type="text" name="apiurl" value="{{ apis.apiurl }}" class="modify"></td>
-            <td><select name="apitester" class="modify">
+            <td><input type="text" name="apiurl" value="{{ apis.apiurl }}" class="modify" readonly="readonly"></td>
+            <td><select name="apitester" class="modify" disabled="disabled">
                 {% for user_oj in user_ojs %}
                     <option value="{{ user_oj.pk }}">{{ user_oj.username }}</option>
                 {% endfor %}
@@ -79,12 +79,19 @@
             <td>{{ apis.update_time }}</td>
             <td>
                 <!-- <a href="javascript:void(0);" onclick="document:modify_{{ apis.pk }}.submit();"> -->
-                <button type="submit" style="border: none; background: #fff">
-                    <img src="/static/admin/img/icon-changelink.svg"/>
+                <button type="button" class="modify" onclick="change_btn_{{ apis.pk }}()">
+                    <img src="/static/admin/img/icon-changelink.svg" alt="编辑" title="编辑"/>
                 </button>
+                <button type="submit" class="modify hidden">
+                        <img src="/static/admin/img/icon-yes.svg" alt="编辑" title="编辑"/>
+                    </button>
                 <!-- </a> -->
             </td>
-            <td><a data-toggle="modal" href="#{{ apis.id }}_delete"><img src="/static/admin/img/icon-deletelink.svg"/></a></td>
+            <td>
+                <a data-toggle="modal" href="#{{ apis.id }}_delete">
+                    <img src="/static/admin/img/icon-deletelink.svg" alt="删除" title="删除"/>
+                </a>
+            </td>
             <!-- 删除-模态框（Modal） -->
             <div class="modal fade" id="{{ apis.id }}_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-sm">
@@ -107,6 +114,13 @@
         </tr>
     </form>
     <script>
+        // 编辑按键,按下后隐藏编辑按键,显示保存按键
+        function change_btn_{{ apis.pk }}(){
+            $("#{{ apis.pk }}_tr input").removeAttr("readonly");
+            $("#{{ apis.pk }}_tr select").removeAttr("disabled");
+            $("#{{ apis.pk }}_tr [type=button]").addClass("hidden")
+            $("#{{ apis.pk }}_tr [type=submit]").removeClass("hidden")
+        }
         // 修改 {{ apisinfo.id }}_modify 是form的ID
         $("#{{ apis.pk }}_modify").submit(function(){
             $.ajax({

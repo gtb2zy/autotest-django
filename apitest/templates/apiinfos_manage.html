@@ -18,14 +18,16 @@
 {% block thead %}
     <tr>
         <th>
-            <span class="pull-left">
+            <div class="pull-left">
                 模块：{{ apis.apiname }}
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 测试负责人：{{ apis.apitester }}
-            </span>
-            <a class="pull-right" style='color:light blue'  href="{% url 'apis_manage' %}?product_id={{ apis.Product_id }}">
-                <img src="/static/admin/img/icon-yes.svg" alt="返回"/>返回上一级
-            </a>
+            </div>
+            <div class="pull-left">
+                <a class=" " style='color:light blue'  href="{% url 'apis_manage' %}?product_id={{ apis.Product_id }}">
+                    <img src="/static/admin/img/icon-yes.svg" alt="返回"/>返回上一级
+                </a>
+            </div>
         </th>
     </tr>
 {% endblock %}
@@ -55,11 +57,48 @@
             </div>
             <div class="panel-collapse collapse" id="login-info">
                 <div class="panel-body">
-                    <span>{{ response }}</span>
+                    <form id="get-login-data" action="#" class="form-horizontal" role="form" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="col-sm-1">
+                                <button type="button" class="btn btn-primary" onclick="get_login_data()">获取</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-5">
+                                <pre class="response">unkonwn</pre>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        function get_login_data(){
+            data_input = $('#get-login-data pre')
+            // ajax请求
+            $.ajax({
+                url:"{% url 'test_login' %}",
+                type:"GET",
+                success:function(data){
+                    try{
+                        json_data = JSON.parse(data['info'])
+                        data_input.text(JSON.stringify(json_data,null,4))
+                    }                       
+                    catch{
+                        data_input.text(data['info'])
+                    }
+                },
+                error:function(){
+                    data_input.css({"color":"red"})
+                    data_input.text("fail")
+                    data_input.text("4004 error")
+                }
+            })
+            return false;
+        }
+    </script>
     <!-- API信息内容 -->
     {% for apisinfo in apiinfos %}
         <div class="panel-group" id="accordion">
@@ -86,10 +125,10 @@
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-apiname" class="col-sm-1 control-label">API</label>
                                 <div class="col-sm-4">
-                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-apiname" name="apiname" value="{{ apisinfo.apiname }}">
+                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-apiname" name="apiname" value="{{ apisinfo.apiname }}" readonly="readonly">
                                 </div>
                                 <div class="col-sm-1">
-                                    <input type="number" class="form-control" id="add-level" name="level" value="{{ apisinfo.level }}">
+                                    <input type="number" class="form-control" id="add-level" name="level" value="{{ apisinfo.level }}" readonly="readonly">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -105,7 +144,7 @@
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-url" class="col-sm-1 control-label">url</label>
                                 <div class="col-sm-2">
-                                    <select class="form-control" name="apimethod">
+                                    <select class="form-control" name="apimethod" disabled="disabled">
                                         <option value={{ apisinfo.apimethod }}>{{ apisinfo.apimethod }}</option>
                                         <option value="get">get</option>
                                         <option value="post">post</option>
@@ -115,19 +154,20 @@
                                     </select>
                                 </div>
                                 <div class="col-sm-3">
-                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-url" name="apiurl" value="{{ apisinfo.apiurl }}">
+                                    <input type="text" class="form-control" id="{{ apisinfo.id }}-url" name="apiurl" value="{{ apisinfo.apiurl }}" readonly="readonly">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-param" class="col-sm-1 control-label">param</label>
                                 <div class="col-sm-5">
-                                    <textarea class="form-control" rows="3" column="10" name="apiparamvalue" id="{{ apisinfo.id }}-param">{{ apisinfo.apiparamvalue }}</textarea>
+                                    <textarea class="form-control hidden" rows="3" column="10" name="apiparamvalue" id="{{ apisinfo.id }}-param">{{ apisinfo.apiparamvalue }}</textarea>
+                                    <pre>{{ apisinfo.apiparamvalue }}</pre>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-body-type" class="col-sm-1 control-label">b-type</label>
                                 <div class="col-sm-5">
-                                    <select class="form-control" id="{{ apisinfo.id }}-body-type" name="bodytype">
+                                    <select class="form-control" id="{{ apisinfo.id }}-body-type" name="bodytype" disabled="disabled">
                                         <option value={{ apisinfo.bodytype }} selected>{{ apisinfo.bodytype }}</option>
                                         <option value="application/json;charset=utf-8">application/json;charset=utf-8</option>
                                         <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
@@ -137,18 +177,21 @@
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-body" class="col-sm-1 control-label">body</label>
                                 <div class="col-sm-5">
-                                    <textarea class="form-control" rows="3" column="10" name="apijson" id="{{ apisinfo.id }}-body">{{ apisinfo.apijson }}</textarea>
+                                    <textarea class="form-control hidden" rows="3" column="10" name="apijson" id="{{ apisinfo.id }}-body">{{ apisinfo.apijson }}</textarea>
+                                    <pre>{{ apisinfo.apijson }}</pre>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="{{ apisinfo.id }}-response" class="col-sm-1 control-label">response</label>
                                 <div class="col-sm-5">
-                                    <textarea class="form-control" rows="3" column="10" name="apiresponse" id="{{ apisinfo.id }}-response">{{ apisinfo.apiresponse }}</textarea>
+                                    <textarea class="form-control hidden" rows="3" column="10" name="apiresponse" id="{{ apisinfo.id }}-response">{{ apisinfo.apiresponse }}</textarea>
+                                    <pre>{{ apisinfo.apiresponse }}</pre>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="col-sm-1 col-sm-offset-1">
-                                    <button type="submit" class="btn btn-primary modify">修改</button>
+                                    <button type="button" class="btn btn-primary edit" onclick="change_btn_{{ apisinfo.id }}()">编辑</button>
+                                    <button type="submit" class="btn btn-primary hidden">保存</button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -170,7 +213,7 @@
                             </div>
                             <div class="form-group">
                                 <div class="col-sm-1 col-sm-offset-1">
-                                    <button type="button" class="btn btn-danger modify" data-toggle="modal" data-target="#{{ apisinfo.id }}_delete">删除</button>
+                                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#{{ apisinfo.id }}_delete">删除</button>
                                 </div>
                             </div>
                         </form>
@@ -179,6 +222,30 @@
             </div>
         </div>
         <script>
+            // 格式化pre
+            $(function(){
+                var pres=$("#{{ apisinfo.id }}_modify pre")
+                pres.each(function(){
+                    if ($(this).prev().val()){
+                        pre_json = JSON.parse($(this).prev().val())
+                        pre_text = JSON.stringify(pre_json,null,4)
+                        $(this).text(pre_text)
+                    }
+                    else{
+                        $(this).text('None')
+                    }
+                })
+            })
+            // // 编辑按键,按下后隐藏编辑按键,显示保存按键
+            function change_btn_{{ apisinfo.id }}(){
+                $("#{{ apisinfo.id }}_modify input").removeAttr("readonly");
+                $("#{{ apisinfo.id }}_modify select").removeAttr("disabled");
+                $("#{{ apisinfo.id }}_modify button.edit").addClass("hidden")
+                $("#{{ apisinfo.id }}_modify [type=submit]").removeClass("hidden")
+                $("#{{ apisinfo.id }}_modify pre").addClass("hidden")
+                $("#{{ apisinfo.id }}_modify textarea").removeClass("hidden")
+                $("#{{ apisinfo.id }}_modify pre.response").removeClass("hidden")
+            }
             // 修改 {{ apisinfo.id }}_modify 是form的ID
             $("#{{ apisinfo.id }}_modify").submit(function(){
                 // 判断数据格式是否合法
@@ -319,10 +386,10 @@
                         </div>
                         <div class="form-group">
                             <div class="col-sm-1">
-                                <button type="submit" class="btn btn-primary modify">添加</button>
+                                <button type="submit" class="btn btn-primary">添加</button>
                             </div>
                             <div class="col-sm-1">
-                                <button type="reset" class="btn btn-primary modify">清除</button>
+                                <button type="reset" class="btn btn-primary">清除</button>
                             </div>
                         </div>
                     </form>
