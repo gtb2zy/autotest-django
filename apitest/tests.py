@@ -74,8 +74,8 @@ def login():
             if 'token' in rev['data']:
                 global TOKEN
                 TOKEN = rev['data']['token']
-        if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
-                'response']['errmsg']:
+        if rev['errcode'] == api['response']['errcode'] and rev[
+                'errmsg'] == api['response']['errmsg']:
             print(error + '-' + api['name'] + ' 测试时间：' + timeval)
         else:
             error = 'FAIL-RESPONSE 不一致'
@@ -201,12 +201,14 @@ def api_request(api):
             if 'token' in rev['data']:
                 global TOKEN
                 TOKEN = rev['data']['token']
-        if rev['errcode'] == api['response']['errcode'] and rev['errmsg'] == api[
-                'response']['errmsg']:
+        if rev['errcode'] == api['response']['errcode'] and rev[
+                'errmsg'] == api['response']['errmsg']:
+            print(datetime.datetime.now())
             print(error + '-' + api['name'] + ' 测试时间：' + timeval)
             return True
         else:
             error = 'FAIL-RESPONSE 不一致'
+            print(datetime.datetime.now())
             print(error + '-' + api['name'] + '-测试时间：' + timeval)
             return False
     except Exception:

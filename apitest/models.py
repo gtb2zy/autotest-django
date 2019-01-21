@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class Apis(models.Model):
     Product = models.ForeignKey(
         'product.Product', on_delete=models.CASCADE, null=True)  # 关联产品id
-    apiname = models.CharField('后端模块', max_length=100)  # 接口标题
+    apiname = models.CharField('后端模块', max_length=100, help_text='请输入后端模块')  # 接口标题，help_text：admin模式下帮助文档
     apiurl = models.CharField('url地址', max_length=200)  # 地址
     # apitester = models.CharField('测试负责人', max_length=16, null=True)  # 执行人
     apitester = models.ForeignKey(

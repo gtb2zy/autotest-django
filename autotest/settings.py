@@ -24,11 +24,13 @@ SECRET_KEY = 'mb=o8xg5p^q0u2$@-n-7_=a4&3mu1j(-5@!bik7tahk$s_rl=j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# 允许接入主机IP
 ALLOWED_HOSTS = [
     '127.0.0.1',
     '47.106.111.62'
     ]
 
+# 登陆url
 LOGIN_URL = '/user/login/'
 
 # Application definition
